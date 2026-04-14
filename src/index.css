@@ -1,0 +1,358 @@
+:root {
+  /* Color palette — light mode */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f0f1f3;
+  --text-primary: #1a1a2e;
+  --text-secondary: #4a4a6a;
+  --text-muted: #8a8aa0;
+  --border-color: #e2e4e8;
+  --accent-color: #6366f1;
+  --accent-light: #e0e7ff;
+  --code-bg: #f4f4f8;
+  --blockquote-border: #d1d5db;
+  --selection-bg: #c7d2fe;
+  --link-color: #4f46e5;
+
+  /* XML tag rainbow colors — light mode */
+  --xml-tag-0: #d63384;
+  --xml-tag-1: #6f42c1;
+  --xml-tag-2: #0d6efd;
+  --xml-tag-3: #20c997;
+  --xml-tag-4: #fd7e14;
+  --xml-tag-5: #6610f2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg-primary: #1a1b26;
+    --bg-secondary: #1f2133;
+    --bg-tertiary: #24263a;
+    --text-primary: #c0caf5;
+    --text-secondary: #9aa5ce;
+    --text-muted: #565f89;
+    --border-color: #2f3347;
+    --accent-color: #7aa2f7;
+    --accent-light: #283457;
+    --code-bg: #1f2335;
+    --blockquote-border: #414868;
+    --selection-bg: #283457;
+    --link-color: #7aa2f7;
+
+    /* XML tag rainbow colors — dark mode */
+    --xml-tag-0: #f472b6;
+    --xml-tag-1: #a78bfa;
+    --xml-tag-2: #60a5fa;
+    --xml-tag-3: #34d399;
+    --xml-tag-4: #fb923c;
+    --xml-tag-5: #a855f7;
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--selection-bg);
+}
+
+/* App layout */
+.app {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+.editor-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Editor container */
+.editor-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* EditorContent wrapper div */
+.editor-container > div:first-child {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.editor-container .tiptap {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4rem 3rem;
+  max-width: 50rem;
+  margin: 0 auto;
+  width: 100%;
+  outline: none;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--text-primary);
+}
+
+/* Status bar */
+.status-bar {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.35rem 1rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+
+/* ============================================
+   TipTap / ProseMirror WYSIWYG Styles
+   ============================================ */
+
+/* Placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--text-muted);
+  pointer-events: none;
+  height: 0;
+  font-style: italic;
+}
+
+/* Headings */
+.tiptap h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+.tiptap h2 {
+  font-size: 1.6rem;
+  font-weight: 650;
+  margin-top: 1.75rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+  color: var(--text-primary);
+}
+
+.tiptap h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+.tiptap h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  margin-bottom: 0.4rem;
+  color: var(--text-primary);
+}
+
+.tiptap h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+  color: var(--text-secondary);
+}
+
+.tiptap h6 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.4rem;
+  color: var(--text-muted);
+}
+
+/* Paragraphs */
+.tiptap p {
+  margin-bottom: 0.75rem;
+}
+
+/* Bold */
+.tiptap strong {
+  font-weight: 650;
+}
+
+/* Italic */
+.tiptap em {
+  font-style: italic;
+}
+
+/* Strikethrough */
+.tiptap s {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Inline code */
+.tiptap code {
+  font-family: "SF Mono", "Fira Code", "JetBrains Mono", "Cascadia Code",
+    monospace;
+  font-size: 0.875em;
+  background: var(--code-bg);
+  border-radius: 4px;
+  padding: 0.15em 0.35em;
+  color: var(--accent-color);
+}
+
+/* Code blocks */
+.tiptap pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.tiptap pre code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+/* Blockquotes */
+.tiptap blockquote {
+  border-left: 3px solid var(--blockquote-border);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.tiptap blockquote p {
+  margin-bottom: 0.5rem;
+}
+
+/* Lists */
+.tiptap ul,
+.tiptap ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.tiptap li {
+  margin-bottom: 0.25rem;
+}
+
+.tiptap li p {
+  margin-bottom: 0.25rem;
+}
+
+.tiptap ul {
+  list-style-type: disc;
+}
+
+.tiptap ol {
+  list-style-type: decimal;
+}
+
+/* Nested lists */
+.tiptap ul ul,
+.tiptap ol ul {
+  list-style-type: circle;
+}
+
+.tiptap ul ul ul,
+.tiptap ol ul ul {
+  list-style-type: square;
+}
+
+/* Horizontal rule */
+.tiptap hr {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: 1.5rem 0;
+}
+
+/* Links */
+.tiptap a {
+  color: var(--link-color);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+}
+
+.tiptap a:hover {
+  border-bottom-color: var(--link-color);
+}
+
+/* Focus styles — clean, no outline jank */
+.tiptap:focus {
+  outline: none;
+}
+
+/* Scrollbar styling */
+.tiptap::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tiptap::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tiptap::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.tiptap::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ============================================
+   XML Tag Rainbow Coloring
+   ============================================ */
+
+.xml-tag {
+  font-family: "SF Mono", "Fira Code", "JetBrains Mono", "Cascadia Code",
+    monospace;
+  font-size: 0.9em;
+  font-weight: 600;
+  border-radius: 3px;
+  padding: 0 2px;
+}
+
+.xml-tag-depth-0 { color: var(--xml-tag-0); }
+.xml-tag-depth-1 { color: var(--xml-tag-1); }
+.xml-tag-depth-2 { color: var(--xml-tag-2); }
+.xml-tag-depth-3 { color: var(--xml-tag-3); }
+.xml-tag-depth-4 { color: var(--xml-tag-4); }
+.xml-tag-depth-5 { color: var(--xml-tag-5); }

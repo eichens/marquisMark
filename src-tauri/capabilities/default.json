@@ -1,0 +1,14 @@
+{
+  "identifier": "default",
+  "description": "Default permissions for the main window",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "dialog:allow-open",
+    "dialog:allow-save",
+    "store:allow-get",
+    "store:allow-set",
+    "store:allow-save",
+    "store:allow-load"
+  ]
+}
