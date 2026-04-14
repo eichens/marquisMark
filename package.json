@@ -1,0 +1,39 @@
+{
+  "name": "marquis-mark",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2",
+    "@tauri-apps/plugin-store": "^2",
+    "@tiptap/extension-character-count": "^2",
+    "@tiptap/extension-code-block-lowlight": "^2",
+    "@tiptap/extension-link": "^2",
+    "@tiptap/extension-placeholder": "^2",
+    "@tiptap/extension-underline": "^2",
+    "@tiptap/pm": "^2",
+    "@tiptap/react": "^2",
+    "@tiptap/starter-kit": "^2",
+    "@tiptap/suggestion": "^2",
+    "lucide-react": "^0.469",
+    "react": "^19",
+    "react-dom": "^19",
+    "tippy.js": "^6",
+    "zustand": "^5"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^4",
+    "typescript": "^5.7",
+    "vite": "^6"
+  }
+}
