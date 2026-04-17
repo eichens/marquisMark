@@ -350,6 +350,65 @@ body {
   line-height: 1.6;
 }
 
+/* Syntax highlighting — light mode */
+.tiptap pre code .hljs-keyword { color: #8839ef; font-weight: 600; }
+.tiptap pre code .hljs-built_in { color: #d20f39; }
+.tiptap pre code .hljs-type { color: #df8e1d; }
+.tiptap pre code .hljs-literal { color: #fe640b; }
+.tiptap pre code .hljs-number { color: #fe640b; }
+.tiptap pre code .hljs-string { color: #40a02b; }
+.tiptap pre code .hljs-regexp { color: #ea76cb; }
+.tiptap pre code .hljs-symbol { color: #e64553; }
+.tiptap pre code .hljs-variable { color: #1e66f5; }
+.tiptap pre code .hljs-attr,
+.tiptap pre code .hljs-attribute { color: #df8e1d; }
+.tiptap pre code .hljs-params { color: #4c4f69; }
+.tiptap pre code .hljs-comment { color: #9ca0b0; font-style: italic; }
+.tiptap pre code .hljs-doctag { color: #d20f39; }
+.tiptap pre code .hljs-function { color: #1e66f5; }
+.tiptap pre code .hljs-title { color: #1e66f5; }
+.tiptap pre code .hljs-title.class_ { color: #df8e1d; }
+.tiptap pre code .hljs-title.function_ { color: #1e66f5; }
+.tiptap pre code .hljs-meta { color: #fe640b; }
+.tiptap pre code .hljs-tag { color: #8839ef; }
+.tiptap pre code .hljs-name { color: #1e66f5; }
+.tiptap pre code .hljs-selector-class { color: #df8e1d; }
+.tiptap pre code .hljs-selector-id { color: #1e66f5; }
+.tiptap pre code .hljs-selector-tag { color: #8839ef; }
+.tiptap pre code .hljs-property { color: #1e66f5; }
+.tiptap pre code .hljs-punctuation { color: #7c7f93; }
+.tiptap pre code .hljs-operator { color: #04a5e5; }
+
+@media (prefers-color-scheme: dark) {
+  .tiptap pre code .hljs-keyword { color: #c678dd; font-weight: 600; }
+  .tiptap pre code .hljs-built_in { color: #e06c75; }
+  .tiptap pre code .hljs-type { color: #e5c07b; }
+  .tiptap pre code .hljs-literal { color: #d19a66; }
+  .tiptap pre code .hljs-number { color: #d19a66; }
+  .tiptap pre code .hljs-string { color: #98c379; }
+  .tiptap pre code .hljs-regexp { color: #c678dd; }
+  .tiptap pre code .hljs-symbol { color: #e06c75; }
+  .tiptap pre code .hljs-variable { color: #61afef; }
+  .tiptap pre code .hljs-attr,
+  .tiptap pre code .hljs-attribute { color: #e5c07b; }
+  .tiptap pre code .hljs-params { color: #abb2bf; }
+  .tiptap pre code .hljs-comment { color: #5c6370; font-style: italic; }
+  .tiptap pre code .hljs-doctag { color: #e06c75; }
+  .tiptap pre code .hljs-function { color: #61afef; }
+  .tiptap pre code .hljs-title { color: #61afef; }
+  .tiptap pre code .hljs-title.class_ { color: #e5c07b; }
+  .tiptap pre code .hljs-title.function_ { color: #61afef; }
+  .tiptap pre code .hljs-meta { color: #d19a66; }
+  .tiptap pre code .hljs-tag { color: #c678dd; }
+  .tiptap pre code .hljs-name { color: #61afef; }
+  .tiptap pre code .hljs-selector-class { color: #e5c07b; }
+  .tiptap pre code .hljs-selector-id { color: #61afef; }
+  .tiptap pre code .hljs-selector-tag { color: #c678dd; }
+  .tiptap pre code .hljs-property { color: #61afef; }
+  .tiptap pre code .hljs-punctuation { color: #7f848e; }
+  .tiptap pre code .hljs-operator { color: #56b6c2; }
+}
+
 /* Blockquotes */
 .tiptap blockquote {
   border-left: 3px solid var(--blockquote-border);
@@ -401,18 +460,31 @@ body {
 .tiptap ul[data-type="taskList"] {
   list-style: none;
   padding-left: 0;
+  margin: 0;
+}
+
+/* Collapse extra paragraphs inside task item content — TipTap adds trailing
+   empty paragraphs when a task item is deleted/merged. Task items should only
+   have one paragraph, so any p after the first is an artifact. */
+.tiptap ul[data-type="taskList"] li > div > p + p {
+  margin: 0;
+  height: 0;
+  overflow: hidden;
 }
 
 .tiptap ul[data-type="taskList"] li {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.5rem;
   margin-bottom: 0.25rem;
 }
 
 .tiptap ul[data-type="taskList"] li > label {
   flex-shrink: 0;
-  margin-top: 0.25rem;
+}
+
+.tiptap ul[data-type="taskList"] li > div p {
+  margin-bottom: 0;
 }
 
 .tiptap ul[data-type="taskList"] li > label input[type="checkbox"] {
