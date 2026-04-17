@@ -38,6 +38,8 @@
     --blockquote-border: #414868;
     --selection-bg: #283457;
     --link-color: #7aa2f7;
+    --editor-bg: #1f2030;
+    --editor-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.04);
 
     /* XML tag rainbow colors — dark mode */
     --xml-tag-0: #f472b6;
@@ -95,10 +97,44 @@ body {
   flex-direction: column;
   overflow: hidden;
   min-height: 0;
+  position: relative;
 }
 
-/* EditorContent wrapper div */
-.editor-container > div:first-child {
+/* Copy button — aligned with right edge of text area */
+/* Text area is max-width:50rem, centered, with 3rem right padding */
+/* So right edge of text = 50% + 25rem - 3rem from left */
+/* Button right edge should match: right = 50% - 25rem + 3rem */
+.copy-button {
+  position: absolute;
+  top: 0.75rem;
+  right: max(0.75rem, calc(50% - 25rem + 3rem));
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+
+.copy-button:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+  border-color: var(--text-muted);
+}
+
+.copy-button.copied {
+  color: #22c55e;
+  border-color: #22c55e;
+}
+
+/* EditorContent wrapper div (the div containing .tiptap) */
+.editor-container > div:has(> .tiptap) {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -111,8 +147,11 @@ body {
   overflow-y: auto;
   padding: 4rem 3rem;
   max-width: 50rem;
-  margin: 0 auto;
-  width: 100%;
+  margin: 2rem auto;
+  width: calc(100% - 4rem);
+  background: var(--editor-bg, #FDFCFB);
+  border-radius: 12px;
+  box-shadow: var(--editor-shadow, 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04));
   outline: none;
   font-size: 1rem;
   line-height: 1.75;
@@ -122,6 +161,7 @@ body {
 /* Status bar */
 .status-bar {
   display: flex;
+  align-items: center;
   gap: 1.5rem;
   padding: 0.35rem 1rem;
   font-size: 0.75rem;
@@ -129,6 +169,62 @@ body {
   border-top: 1px solid var(--border-color);
   background: var(--bg-secondary);
   flex-shrink: 0;
+}
+
+.status-bar-spacer {
+  flex: 1;
+}
+
+/* Token count */
+.token-count-section {
+  display: flex;
+  align-items: center;
+}
+
+.sync-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-family: inherit;
+  transition: color 0.15s, background 0.15s;
+}
+
+.sync-button:hover {
+  color: var(--accent-color);
+  background: var(--bg-tertiary);
+}
+
+.sync-button:disabled {
+  cursor: default;
+}
+
+.sync-button.spinning svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.token-count-stale {
+  opacity: 0.5;
+}
+
+.token-count-fresh {
+  color: var(--text-muted);
+}
+
+.token-count-error {
+  color: #ef4444;
+  cursor: help;
 }
 
 /* ============================================
