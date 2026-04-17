@@ -1,4 +1,4 @@
-# marquisMark
+# MarquisMark
 
 A local desktop markdown editor built for authoring prompts for Claude and GPT models. Think Typora, but purpose-built for prompt engineering.
 
