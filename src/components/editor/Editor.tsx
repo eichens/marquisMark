@@ -7,11 +7,15 @@ import Underline from "@tiptap/extension-underline";
 import CharacterCount from "@tiptap/extension-character-count";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import { common, createLowlight } from "lowlight";
 import { RefreshCw, Copy, Check } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { XmlTagHighlighter } from "../../extensions/XmlTagHighlighter";
 import { XmlTagAutoClose } from "../../extensions/XmlTagAutoClose";
 import { serializeToMarkdown } from "../../services/markdownSerializer";
+
+const lowlight = createLowlight(common);
 
 interface TokenCountResult {
   input_tokens: number;
@@ -32,6 +36,10 @@ export function Editor() {
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3, 4, 5, 6] },
+        codeBlock: false,
+      }),
+      CodeBlockLowlight.configure({
+        lowlight,
       }),
       Placeholder.configure({
         placeholder: "Start writing your prompt…",
