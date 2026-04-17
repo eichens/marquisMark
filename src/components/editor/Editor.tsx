@@ -5,10 +5,13 @@ import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
 import CharacterCount from "@tiptap/extension-character-count";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
 import { RefreshCw, Copy, Check } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { XmlTagHighlighter } from "../../extensions/XmlTagHighlighter";
 import { XmlTagAutoClose } from "../../extensions/XmlTagAutoClose";
+import { serializeToMarkdown } from "../../services/markdownSerializer";
 
 interface TokenCountResult {
   input_tokens: number;
@@ -38,6 +41,10 @@ export function Editor() {
       }),
       Underline,
       CharacterCount,
+      TaskList,
+      TaskItem.configure({
+        nested: true,
+      }),
       XmlTagHighlighter,
       XmlTagAutoClose,
     ],
@@ -54,8 +61,8 @@ export function Editor() {
 
   const handleCopy = useCallback(async () => {
     if (!editor) return;
-    const text = editor.getText({ blockSeparator: "\n" });
-    await navigator.clipboard.writeText(text);
+    const markdown = serializeToMarkdown(editor);
+    await navigator.clipboard.writeText(markdown);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
   }, [editor]);
@@ -63,8 +70,8 @@ export function Editor() {
   const handleCountTokens = useCallback(async () => {
     if (!editor || isLoading) return;
 
-    const text = editor.getText({ blockSeparator: "\n" });
-    if (!text.trim()) {
+    const markdown = serializeToMarkdown(editor);
+    if (!markdown.trim()) {
       setTokenCount(0);
       setIsStale(false);
       countedVersionRef.current = versionRef.current;
@@ -78,11 +85,10 @@ export function Editor() {
 
     try {
       const result = await invoke<TokenCountResult>("count_tokens", {
-        content: text,
+        content: markdown,
       });
       setTokenCount(result.input_tokens);
       countedVersionRef.current = requestVersion;
-      // If user typed during the request, stay stale
       setIsStale(requestVersion !== versionRef.current);
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -96,14 +102,18 @@ export function Editor() {
 
   return (
     <div className="editor-container">
-      <button
-        className={`copy-button ${copied ? "copied" : ""}`}
-        onClick={handleCopy}
-        title="Copy entire document"
-      >
-        {copied ? <Check size={16} /> : <Copy size={16} />}
-      </button>
-      <EditorContent editor={editor} />
+      <div className="editor-scroll-area">
+        <div className="editor-content-wrapper">
+          <EditorContent editor={editor} />
+          <button
+            className={`copy-button ${copied ? "copied" : ""}`}
+            onClick={handleCopy}
+            title="Copy as markdown"
+          >
+            {copied ? <Check size={14} /> : <Copy size={14} />}
+          </button>
+        </div>
+      </div>
       {editor && (
         <div className="status-bar">
           <span>{wordCount} words</span>
