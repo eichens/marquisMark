@@ -8,12 +8,22 @@ import CharacterCount from "@tiptap/extension-character-count";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import Highlight from "@tiptap/extension-highlight";
+import SuperscriptExt from "@tiptap/extension-superscript";
+import SubscriptExt from "@tiptap/extension-subscript";
+import TextAlign from "@tiptap/extension-text-align";
+import ImageExt from "@tiptap/extension-image";
+import TextStyle from "@tiptap/extension-text-style";
+import Color from "@tiptap/extension-color";
 import { common, createLowlight } from "lowlight";
 import { RefreshCw, Copy, Check } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import { XmlTagHighlighter } from "../../extensions/XmlTagHighlighter";
 import { XmlTagAutoClose } from "../../extensions/XmlTagAutoClose";
 import { serializeToMarkdown } from "../../services/markdownSerializer";
+import { Toolbar } from "./Toolbar";
+import { SpellcheckMenu } from "./SpellcheckMenu";
+import { Spellcheck } from "../../extensions/Spellcheck";
 
 const lowlight = createLowlight(common);
 
@@ -53,11 +63,28 @@ export function Editor() {
       TaskItem.configure({
         nested: true,
       }),
+      Highlight,
+      SuperscriptExt,
+      SubscriptExt,
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+      }),
+      ImageExt.configure({
+        inline: false,
+      }),
+      TextStyle,
+      Color,
       XmlTagHighlighter,
       XmlTagAutoClose,
+      Spellcheck,
     ],
     content: "",
     autofocus: true,
+    editorProps: {
+      attributes: {
+        spellcheck: "false",
+      },
+    },
     onUpdate: ({ editor }) => {
       versionRef.current += 1;
       setIsStale(true);
@@ -110,6 +137,8 @@ export function Editor() {
 
   return (
     <div className="editor-container">
+      {editor && <Toolbar editor={editor} />}
+      {editor && <SpellcheckMenu editor={editor} />}
       <div className="editor-scroll-area">
         <div className="editor-content-wrapper">
           <EditorContent editor={editor} />

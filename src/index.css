@@ -99,6 +99,167 @@ body {
   min-height: 0;
 }
 
+/* Toolbar */
+.editor-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 0.35rem 0.75rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+
+.toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 1.25rem;
+  background: var(--border-color);
+  margin: 0 0.35rem;
+  flex-shrink: 0;
+}
+
+.toolbar-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: 1.75rem;
+  height: 1.75rem;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.toolbar-button:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.toolbar-button.is-active {
+  background: var(--accent-light);
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+
+.toolbar-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.toolbar-button:disabled:hover {
+  background: none;
+  color: var(--text-secondary);
+}
+
+/* Heading dropdown trigger — wider to fit label + chevron */
+.toolbar-dropdown {
+  position: relative;
+}
+
+.toolbar-dropdown-trigger {
+  width: auto;
+  padding: 0 0.35rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.toolbar-heading-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Dropdown menus — fixed position so they pop over everything */
+.toolbar-dropdown-menu {
+  position: fixed;
+  z-index: 50;
+  min-width: 10rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.toolbar-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.toolbar-dropdown-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.toolbar-dropdown-item.is-active {
+  background: var(--accent-light);
+  color: var(--accent-color);
+}
+
+.heading-preview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.heading-preview.h1 { font-size: 1.1rem; }
+.heading-preview.h2 { font-size: 1rem; }
+.heading-preview.h3 { font-size: 0.9rem; }
+.heading-preview.h4 { font-size: 0.8rem; }
+.heading-preview.h5 { font-size: 0.75rem; }
+.heading-preview.h6 { font-size: 0.7rem; }
+
+/* Text color dropdown */
+.toolbar-color-indicator {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.toolbar-color-menu {
+  min-width: 9rem;
+}
+
+.toolbar-color-item {
+  gap: 0.5rem;
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 4px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-color);
+}
+
 /* Scroll area */
 .editor-scroll-area {
   flex: 1;
@@ -329,6 +490,42 @@ body {
   border-radius: 4px;
   padding: 0.15em 0.35em;
   color: var(--accent-color);
+}
+
+/* Highlight */
+.tiptap mark {
+  background: #fef08a;
+  border-radius: 2px;
+  padding: 0.05em 0.1em;
+}
+
+@media (prefers-color-scheme: dark) {
+  .tiptap mark {
+    background: #854d0e;
+    color: #fef9c3;
+  }
+}
+
+/* Superscript / Subscript */
+.tiptap sup {
+  font-size: 0.75em;
+}
+
+.tiptap sub {
+  font-size: 0.75em;
+}
+
+/* Images */
+.tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.tiptap img.ProseMirror-selectednode {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
 }
 
 /* Code blocks */
@@ -564,3 +761,91 @@ body {
 .xml-tag-depth-3 { color: var(--xml-tag-3); }
 .xml-tag-depth-4 { color: var(--xml-tag-4); }
 .xml-tag-depth-5 { color: var(--xml-tag-5); }
+
+/* ============================================
+   Spellcheck
+   ============================================ */
+
+/* Red squiggly underline via wavy text-decoration */
+.spellcheck-error {
+  text-decoration: underline wavy #ef4444;
+  text-decoration-skip-ink: none;
+  text-underline-offset: 3px;
+}
+
+/* Context menu — positioned fixed so it works over any scroll container */
+.spellcheck-menu {
+  position: fixed;
+  z-index: 100;
+  min-width: 10rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+  padding: 0.25rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.spellcheck-suggestions {
+  display: flex;
+  flex-direction: column;
+}
+
+.spellcheck-suggestion {
+  display: block;
+  width: 100%;
+  padding: 0.35rem 0.75rem;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--accent-color);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  font-weight: 500;
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.spellcheck-suggestion:hover {
+  background: var(--accent-light);
+}
+
+.spellcheck-no-suggestions {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.spellcheck-menu-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.25rem 0;
+}
+
+.spellcheck-actions {
+  display: flex;
+  flex-direction: column;
+}
+
+.spellcheck-action {
+  display: block;
+  width: 100%;
+  padding: 0.35rem 0.75rem;
+  border: none;
+  border-radius: 4px;
+  background: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: inherit;
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.spellcheck-action:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
