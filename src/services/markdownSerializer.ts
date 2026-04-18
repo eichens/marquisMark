@@ -68,6 +68,13 @@ function serializeNode(
     return;
   }
 
+  if (node.type.name === "image") {
+    const src = (node.attrs.src as string) || "";
+    const alt = (node.attrs.alt as string) || "";
+    lines.push(`![${alt}](${src})`);
+    return;
+  }
+
   if (node.type.name === "horizontalRule") {
     lines.push("---");
     return;
@@ -186,13 +193,19 @@ function serializeInline(node: ProseMirrorNode): string {
     const hasItalic = marks.some((m) => m.type.name === "italic");
     const hasStrike = marks.some((m) => m.type.name === "strike");
     const hasUnderline = marks.some((m) => m.type.name === "underline");
+    const hasHighlight = marks.some((m) => m.type.name === "highlight");
+    const hasSuperscript = marks.some((m) => m.type.name === "superscript");
+    const hasSubscript = marks.some((m) => m.type.name === "subscript");
     const linkMark = marks.find((m) => m.type.name === "link");
 
     if (hasStrike) text = "~~" + text + "~~";
     if (hasBold && hasItalic) text = "***" + text + "***";
     else if (hasBold) text = "**" + text + "**";
     else if (hasItalic) text = "*" + text + "*";
+    if (hasHighlight) text = "==" + text + "==";
     if (hasUnderline) text = "<u>" + text + "</u>";
+    if (hasSuperscript) text = "<sup>" + text + "</sup>";
+    if (hasSubscript) text = "<sub>" + text + "</sub>";
     if (linkMark) text = "[" + text + "](" + linkMark.attrs.href + ")";
 
     result += text;
