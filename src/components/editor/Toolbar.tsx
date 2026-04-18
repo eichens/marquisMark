@@ -23,7 +23,7 @@ import {
   AlignRight,
   Image,
   ChevronDown,
-  Palette,
+  Baseline,
 } from "lucide-react";
 
 interface ToolbarProps {
@@ -305,12 +305,11 @@ export function Toolbar({ editor }: ToolbarProps) {
           onClick={toggleColor}
           title="Text color"
         >
-          <Palette size={iconSize} />
-          <span
-            className="toolbar-color-indicator"
+          <Baseline
+            size={iconSize}
             style={{
-              background:
-                editor.getAttributes("textStyle").color || "var(--text-primary)",
+              color:
+                editor.getAttributes("textStyle").color || "var(--text-secondary)",
             }}
           />
           <ChevronDown size={10} />
