@@ -24,6 +24,7 @@ import { serializeToMarkdown } from "../../services/markdownSerializer";
 import { Toolbar } from "./Toolbar";
 import { SpellcheckMenu } from "./SpellcheckMenu";
 import { Spellcheck } from "../../extensions/Spellcheck";
+import { AiBubbleMenu } from "./AiBubbleMenu";
 
 const lowlight = createLowlight(common);
 
@@ -139,6 +140,7 @@ export function Editor() {
     <div className="editor-container">
       {editor && <Toolbar editor={editor} />}
       {editor && <SpellcheckMenu editor={editor} />}
+      {editor && <AiBubbleMenu editor={editor} />}
       <div className="editor-scroll-area">
         <div className="editor-content-wrapper">
           <EditorContent editor={editor} />

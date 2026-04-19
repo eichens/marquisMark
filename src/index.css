@@ -842,3 +842,154 @@ body {
   background: var(--bg-tertiary);
   color: var(--text-primary);
 }
+
+/* ============================================
+   AI Bubble Menu
+   ============================================ */
+
+.ai-bubble-menu {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  padding: 0.25rem;
+  min-width: 11rem;
+}
+
+.ai-bubble-actions {
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-action-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.4rem 0.65rem;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-family: inherit;
+  text-align: left;
+  white-space: nowrap;
+  transition: background 0.1s;
+}
+
+.ai-action-button:hover {
+  background: var(--accent-light);
+  color: var(--accent-color);
+}
+
+.ai-action-button svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.ai-action-button:hover svg {
+  color: var(--accent-color);
+}
+
+.ai-bubble-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 0.2rem 0;
+}
+
+/* Loading state */
+.ai-bubble-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.ai-spinner {
+  animation: spin 1s linear infinite;
+}
+
+/* Error state */
+.ai-bubble-error {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  max-width: 20rem;
+}
+
+.ai-error-text {
+  font-size: 0.75rem;
+  color: #ef4444;
+  word-break: break-word;
+}
+
+.ai-error-dismiss {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-family: inherit;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  transition: background 0.1s;
+}
+
+.ai-error-dismiss:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* Custom prompt input */
+.ai-bubble-custom {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem;
+}
+
+.ai-custom-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: none;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-family: inherit;
+  padding: 0.35rem 0.5rem;
+  min-width: 14rem;
+}
+
+.ai-custom-input::placeholder {
+  color: var(--text-muted);
+}
+
+.ai-custom-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 5px;
+  background: var(--accent-color);
+  color: white;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+
+.ai-custom-submit:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.ai-custom-submit:hover:not(:disabled) {
+  opacity: 0.85;
+}
