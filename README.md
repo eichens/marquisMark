@@ -1,6 +1,10 @@
+<div align="center">
+
 # Marquis Markdown Mark 1
 
 <img src="./MM.png" alt="MarquisMark" width="400" />
+
+</div>
 
 A local desktop markdown editor built for authoring prompts for Claude and GPT models. Think Typora, but purpose-built for prompt engineering.
 
