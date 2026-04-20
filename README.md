@@ -2,7 +2,7 @@
 
 # Marquis Markdown Mark 1
 
-<img src="./MM.png" alt="MarquisMark" width="400" />
+<img src="./BWLogo.svg" alt="MarquisMark" width="400" />
 
 </div>
 
