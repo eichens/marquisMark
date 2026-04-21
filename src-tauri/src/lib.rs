@@ -7,6 +7,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::tokens::count_tokens,
             commands::ai::ai_generate,
+            commands::file::read_file,
+            commands::file::write_file,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

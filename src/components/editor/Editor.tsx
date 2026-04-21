@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -18,6 +18,7 @@ import Color from "@tiptap/extension-color";
 import { common, createLowlight } from "lowlight";
 import { RefreshCw, Copy, Check } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
+import { open, save } from "@tauri-apps/plugin-dialog";
 import { XmlTagHighlighter } from "../../extensions/XmlTagHighlighter";
 import { XmlTagAutoClose } from "../../extensions/XmlTagAutoClose";
 import { serializeToMarkdown } from "../../services/markdownSerializer";
@@ -32,6 +33,13 @@ interface TokenCountResult {
   input_tokens: number;
 }
 
+interface FileContents {
+  content: string;
+  path: string;
+}
+
+const MD_FILTERS = [{ name: "Markdown", extensions: ["md", "mdx", "markdown", "txt"] }];
+
 export function Editor() {
   const [tokenCount, setTokenCount] = useState<number | null>(null);
   const [isStale, setIsStale] = useState(true);
@@ -40,8 +48,11 @@ export function Editor() {
   const [copied, setCopied] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
+  const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
+  const [isDirty, setIsDirty] = useState(false);
   const versionRef = useRef(0);
   const countedVersionRef = useRef(0);
+  const savedVersionRef = useRef(0);
 
   const editor = useEditor({
     extensions: [
@@ -90,6 +101,7 @@ export function Editor() {
       versionRef.current += 1;
       setIsStale(true);
       setError(null);
+      setIsDirty(versionRef.current !== savedVersionRef.current);
       setWordCount(editor.storage.characterCount.words());
       setCharCount(editor.storage.characterCount.characters());
     },
@@ -136,9 +148,85 @@ export function Editor() {
     }
   }, [editor, isLoading]);
 
+  const handleOpenFile = useCallback(async () => {
+    if (!editor) return;
+    const selected = await open({ multiple: false, filters: MD_FILTERS });
+    if (!selected) return;
+    try {
+      const result = await invoke<FileContents>("read_file", { path: selected });
+      editor.commands.setContent(result.content);
+      setCurrentFilePath(result.path);
+      savedVersionRef.current = versionRef.current;
+      setIsDirty(false);
+    } catch (e) {
+      console.error("Open file error:", e);
+      setError(String(e));
+    }
+  }, [editor]);
+
+  const handleSaveFile = useCallback(async () => {
+    if (!editor) return;
+    const markdown = serializeToMarkdown(editor);
+    let filePath = currentFilePath;
+    if (!filePath) {
+      const selected = await save({ filters: MD_FILTERS, defaultPath: "untitled.md" });
+      if (!selected) return;
+      filePath = selected;
+    }
+    try {
+      await invoke("write_file", { path: filePath, content: markdown });
+      setCurrentFilePath(filePath);
+      savedVersionRef.current = versionRef.current;
+      setIsDirty(false);
+    } catch (e) {
+      console.error("Save file error:", e);
+      setError(String(e));
+    }
+  }, [editor, currentFilePath]);
+
+  const handleSaveAs = useCallback(async () => {
+    if (!editor) return;
+    const markdown = serializeToMarkdown(editor);
+    const selected = await save({ filters: MD_FILTERS, defaultPath: currentFilePath || "untitled.md" });
+    if (!selected) return;
+    try {
+      await invoke("write_file", { path: selected, content: markdown });
+      setCurrentFilePath(selected);
+      savedVersionRef.current = versionRef.current;
+      setIsDirty(false);
+    } catch (e) {
+      console.error("Save as error:", e);
+      setError(String(e));
+    }
+  }, [editor, currentFilePath]);
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      const mod = e.metaKey || e.ctrlKey;
+      if (mod && e.key === "o") {
+        e.preventDefault();
+        handleOpenFile();
+      } else if (mod && e.shiftKey && e.key === "s") {
+        e.preventDefault();
+        handleSaveAs();
+      } else if (mod && e.key === "s") {
+        e.preventDefault();
+        handleSaveFile();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleOpenFile, handleSaveFile, handleSaveAs]);
+
   return (
     <div className="editor-container">
-      {editor && <Toolbar editor={editor} />}
+      {editor && (
+        <Toolbar
+          editor={editor}
+          onOpen={handleOpenFile}
+          onSave={handleSaveFile}
+        />
+      )}
       {editor && <SpellcheckMenu editor={editor} />}
       {editor && <AiBubbleMenu editor={editor} />}
       <div className="editor-scroll-area">
@@ -155,6 +243,12 @@ export function Editor() {
       </div>
       {editor && (
         <div className="status-bar">
+          <span className="status-bar-file">
+            {currentFilePath
+              ? currentFilePath.split("/").pop()
+              : "Untitled"}
+            {isDirty ? " •" : ""}
+          </span>
           <span>{wordCount} words</span>
           <span>{charCount} characters</span>
           <span className="status-bar-spacer" />

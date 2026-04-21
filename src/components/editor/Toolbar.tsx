@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { Editor } from "@tiptap/react";
 import {
+  FolderOpen,
+  Save,
   Undo2,
   Redo2,
   Heading,
@@ -28,6 +30,8 @@ import {
 
 interface ToolbarProps {
   editor: Editor;
+  onOpen: () => void;
+  onSave: () => void;
 }
 
 interface DropdownPos {
@@ -55,7 +59,7 @@ function posBelow(el: HTMLElement): DropdownPos {
   return { top: rect.bottom + 4, left: rect.left };
 }
 
-export function Toolbar({ editor }: ToolbarProps) {
+export function Toolbar({ editor, onOpen, onSave }: ToolbarProps) {
   const [headingOpen, setHeadingOpen] = useState(false);
   const [headingPos, setHeadingPos] = useState<DropdownPos | null>(null);
   const [colorOpen, setColorOpen] = useState(false);
@@ -139,7 +143,27 @@ export function Toolbar({ editor }: ToolbarProps) {
 
   return (
     <div className="editor-toolbar">
-      {/* Section 1: Undo / Redo */}
+      {/* File operations */}
+      <div className="toolbar-group">
+        <button
+          className="toolbar-button"
+          onClick={onOpen}
+          title="Open file (⌘O)"
+        >
+          <FolderOpen size={iconSize} />
+        </button>
+        <button
+          className="toolbar-button"
+          onClick={onSave}
+          title="Save file (⌘S)"
+        >
+          <Save size={iconSize} />
+        </button>
+      </div>
+
+      <div className="toolbar-divider" />
+
+      {/* Undo / Redo */}
       <div className="toolbar-group">
         <button
           className="toolbar-button"
