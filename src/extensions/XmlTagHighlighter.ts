@@ -4,7 +4,7 @@ import { Decoration, DecorationSet } from "@tiptap/pm/view";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 
 const PLUGIN_KEY = new PluginKey("xmlTagHighlighter");
-const TAG_REGEX = /<\/?[\w][\w:-]*\s*>/g;
+const TAG_REGEX = /<\/?([\w][\w:-]*)[^>]*>/g;
 const NUM_COLORS = 6;
 
 interface TagMatch {
@@ -27,7 +27,7 @@ function findTags(doc: ProseMirrorNode): TagMatch[] {
     while ((match = TAG_REGEX.exec(text)) !== null) {
       const fullMatch = match[0];
       const isClosing = fullMatch.startsWith("</");
-      const name = fullMatch.replace(/^<\/?/, "").replace(/\s*>$/, "");
+      const name = match[1];
 
       tags.push({
         from: pos + match.index,

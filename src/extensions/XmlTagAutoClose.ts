@@ -4,17 +4,9 @@ import type { EditorView } from "@tiptap/pm/view";
 
 const PLUGIN_KEY = new PluginKey("xmlTagAutoClose");
 
-/**
- * Matches an opening XML tag being typed: `<tagname` at the end of text.
- * Captures the tag name. Allows letters, digits, underscores, hyphens, colons.
- */
-const OPENING_TAG_PATTERN = /<([\w][\w:-]*)$/;
+const OPENING_TAG_PATTERN = /<([\w][\w:-]*)[^>]*$/;
 
-/**
- * Detects if the tag starts at the beginning of the paragraph (after optional whitespace).
- * Used to decide between block expansion vs inline close.
- */
-const LINE_START_TAG_PATTERN = /^(\s*)<([\w][\w:-]*)$/;
+const LINE_START_TAG_PATTERN = /^(\s*)<([\w][\w:-]*)[^>]*$/;
 
 function getLeadingWhitespace(text: string): string {
   return text.match(/^(\s*)/)?.[1] || "";
