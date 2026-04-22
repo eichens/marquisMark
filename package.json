@@ -13,7 +13,6 @@
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-dialog": "^2",
     "@tauri-apps/plugin-store": "^2",
-    "@tiptap/extension-character-count": "^2",
     "@tiptap/extension-code-block-lowlight": "^2",
     "@tiptap/extension-color": "^2.27.2",
     "@tiptap/extension-highlight": "^2.27.2",
@@ -30,15 +29,13 @@
     "@tiptap/pm": "^2",
     "@tiptap/react": "^2",
     "@tiptap/starter-kit": "^2",
-    "@tiptap/suggestion": "^2",
     "dictionary-en": "^4.0.0",
     "lucide-react": "^0.469",
     "marked": "^18.0.2",
     "nspell": "^2.1.5",
     "react": "^19",
     "react-dom": "^19",
-    "tippy.js": "^6",
-    "zustand": "^5"
+    "tippy.js": "^6"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2",
