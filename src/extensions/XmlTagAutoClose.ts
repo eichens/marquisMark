@@ -12,6 +12,32 @@ function getLeadingWhitespace(text: string): string {
   return text.match(/^(\s*)/)?.[1] || "";
 }
 
+function handleAutoCloseInXmlBlock(
+  view: EditorView,
+  from: number,
+  to: number,
+): boolean {
+  const { state } = view;
+  const { $from } = state.selection;
+  const parent = $from.parent;
+
+  if (parent.type.name !== "xmlBlock") return false;
+
+  const textBefore = parent.textBetween(0, $from.parentOffset);
+  const tagMatch = textBefore.match(OPENING_TAG_PATTERN);
+  if (!tagMatch) return false;
+
+  const tagName = tagMatch[1];
+  const closingTag = `</${tagName}>`;
+  const { tr } = state;
+
+  tr.insertText(">" + closingTag, from, to);
+  tr.setSelection(TextSelection.create(tr.doc, from + 1));
+
+  view.dispatch(tr);
+  return true;
+}
+
 function handleAutoClose(
   view: EditorView,
   from: number,
@@ -20,6 +46,10 @@ function handleAutoClose(
   const { state } = view;
   const { $from } = state.selection;
   const paragraph = $from.parent;
+
+  if (paragraph.type.name === "xmlBlock") {
+    return handleAutoCloseInXmlBlock(view, from, to);
+  }
 
   if (paragraph.type.name !== "paragraph") return false;
 
@@ -33,20 +63,13 @@ function handleAutoClose(
   const paragraphType = schema.nodes.paragraph;
 
   if (lineStartMatch) {
-    // Block expansion: tag is at line start
-    // <tagname>
-    //   |cursor
-    // </tagname>
     const currentIndent = lineStartMatch[1];
     const contentIndent = currentIndent + "  ";
 
-    // Insert the '>'
     tr.insertText(">", from, to);
 
-    // Position after the current paragraph
     const afterParagraph = tr.mapping.map($from.after());
 
-    // Create content paragraph (indented) and closing tag paragraph
     const contentPara = paragraphType.create(
       null,
       contentIndent ? [schema.text(contentIndent)] : undefined,
@@ -57,23 +80,12 @@ function handleAutoClose(
 
     tr.insert(afterParagraph, [contentPara, closingPara]);
 
-    // Place cursor at end of content paragraph's indentation
-    // afterParagraph -> start of contentPara node
-    // +1 -> inside contentPara
-    // +contentIndent.length -> after the whitespace
     const cursorPos = afterParagraph + 1 + contentIndent.length;
     tr.setSelection(TextSelection.create(tr.doc, cursorPos));
   } else {
-    // Inline close: tag is in the middle of text
-    // <tagname>|cursor|</tagname>
-
-    // Insert '>' and the closing tag
     const closingTag = `</${tagName}>`;
     tr.insertText(">" + closingTag, from, to);
 
-    // Place cursor right after the '>' (between open and close tags)
-    // from was where '>' goes. After inserting ">closingTag",
-    // the cursor should be at from + 1 (right after '>').
     const cursorPos = from + 1;
     tr.setSelection(TextSelection.create(tr.doc, cursorPos));
   }

@@ -745,6 +745,30 @@ body {
 }
 
 /* ============================================
+   XML Block (custom non-HTML tags)
+   ============================================ */
+
+.tiptap pre[data-xml-block="true"] {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.tiptap pre[data-xml-block="true"] code {
+  background: none;
+  padding: 0;
+  border-radius: 0;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* ============================================
    XML Tag Rainbow Coloring
    ============================================ */
 

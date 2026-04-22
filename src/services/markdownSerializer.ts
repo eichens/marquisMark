@@ -18,7 +18,12 @@ function serializeNode(
   _indent: string,
 ): void {
   if (node.type.name === "doc") {
-    node.forEach((child) => serializeNode(child, lines, _indent));
+    let first = true;
+    node.forEach((child) => {
+      if (!first) lines.push("");
+      serializeNode(child, lines, _indent);
+      first = false;
+    });
     return;
   }
 
@@ -57,6 +62,16 @@ function serializeNode(
     const subLines: string[] = [];
     node.forEach((child) => serializeNode(child, subLines, _indent));
     subLines.forEach((line) => lines.push("> " + line));
+    return;
+  }
+
+  if (node.type.name === "xmlBlock") {
+    const raw = node.attrs.rawContent as string;
+    if (raw) {
+      lines.push(raw);
+    } else {
+      lines.push(node.textContent);
+    }
     return;
   }
 

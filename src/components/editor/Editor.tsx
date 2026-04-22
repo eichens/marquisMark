@@ -20,7 +20,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import { XmlTagHighlighter } from "../../extensions/XmlTagHighlighter";
 import { XmlTagAutoClose } from "../../extensions/XmlTagAutoClose";
+import { XmlBlock } from "../../extensions/XmlBlock";
 import { serializeToMarkdown } from "../../services/markdownSerializer";
+import { parseMarkdownToHtml } from "../../services/markdownParser";
 import { Toolbar } from "./Toolbar";
 import { SpellcheckMenu } from "./SpellcheckMenu";
 import { Spellcheck } from "../../extensions/Spellcheck";
@@ -91,6 +93,7 @@ export function Editor() {
       }),
       TextStyle,
       Color,
+      XmlBlock,
       XmlTagHighlighter,
       XmlTagAutoClose,
       Spellcheck,
@@ -165,7 +168,8 @@ export function Editor() {
     if (!selected) return;
     try {
       const result = await invoke<FileContents>("read_file", { path: selected });
-      editor.commands.setContent(result.content);
+      const html = parseMarkdownToHtml(result.content);
+      editor.commands.setContent(html);
       setCurrentFilePath(result.path);
       const c = countFromDoc(editor.state.doc);
       setWordCount(c.words);
