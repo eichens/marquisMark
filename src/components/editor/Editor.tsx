@@ -4,7 +4,6 @@ import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import Link from "@tiptap/extension-link";
 import Underline from "@tiptap/extension-underline";
-import CharacterCount from "@tiptap/extension-character-count";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
@@ -40,6 +39,13 @@ interface FileContents {
 
 const MD_FILTERS = [{ name: "Markdown", extensions: ["md", "mdx", "markdown", "txt"] }];
 
+function countFromDoc(doc: import("@tiptap/pm/model").Node) {
+  const text = doc.textBetween(0, doc.content.size, " ", " ");
+  const chars = doc.textBetween(0, doc.content.size, undefined, " ").length;
+  const words = text.split(" ").filter(w => w !== "").length;
+  return { chars, words };
+}
+
 export function Editor() {
   const [tokenCount, setTokenCount] = useState<number | null>(null);
   const [isStale, setIsStale] = useState(true);
@@ -70,7 +76,6 @@ export function Editor() {
         openOnClick: false,
       }),
       Underline,
-      CharacterCount,
       TaskList,
       TaskItem.configure({
         nested: true,
@@ -97,13 +102,19 @@ export function Editor() {
         spellcheck: "false",
       },
     },
+    onCreate: ({ editor }) => {
+      const c = countFromDoc(editor.state.doc);
+      setWordCount(c.words);
+      setCharCount(c.chars);
+    },
     onUpdate: ({ editor }) => {
       versionRef.current += 1;
       setIsStale(true);
       setError(null);
       setIsDirty(versionRef.current !== savedVersionRef.current);
-      setWordCount(editor.storage.characterCount.words());
-      setCharCount(editor.storage.characterCount.characters());
+      const c = countFromDoc(editor.state.doc);
+      setWordCount(c.words);
+      setCharCount(c.chars);
     },
   });
 
@@ -156,6 +167,9 @@ export function Editor() {
       const result = await invoke<FileContents>("read_file", { path: selected });
       editor.commands.setContent(result.content);
       setCurrentFilePath(result.path);
+      const c = countFromDoc(editor.state.doc);
+      setWordCount(c.words);
+      setCharCount(c.chars);
       savedVersionRef.current = versionRef.current;
       setIsDirty(false);
     } catch (e) {
