@@ -67,11 +67,6 @@ export function ignoreWord(word: string): void {
   ignoreSet.add(word.toLowerCase());
 }
 
-/** Check if a word is currently ignored. */
-export function isIgnored(word: string): boolean {
-  return ignoreSet.has(word.toLowerCase());
-}
-
 /** Words we should never spellcheck. */
 function shouldSkip(word: string): boolean {
   // All uppercase (acronyms)
