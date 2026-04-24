@@ -7,6 +7,7 @@ import {
   isCorrect,
   autoCorrection,
   suggest,
+  skipAutoCorrect,
 } from "../services/spellcheck";
 
 export interface MisspelledWord {
@@ -235,6 +236,10 @@ export const Spellcheck = Extension.create({
 
         const correction = autoCorrection(word);
         if (!correction) return null;
+
+        // Once we've corrected this word, don't auto-correct it again this session.
+        // If the user rewrites it the same way, they mean it.
+        skipAutoCorrect(word);
 
         const wordFrom = $pos.start() + $pos.parentOffset - rawWord.length;
         const wordTo = $pos.start() + $pos.parentOffset;

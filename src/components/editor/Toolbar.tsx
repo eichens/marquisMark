@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { Editor } from "@tiptap/react";
 import {
+  Menu,
+  SquarePen,
   FolderOpen,
   Save,
   Undo2,
@@ -32,6 +34,8 @@ interface ToolbarProps {
   editor: Editor;
   onOpen: () => void;
   onSave: () => void;
+  onNewDocument: () => void;
+  onToggleSidebar: () => void;
 }
 
 interface DropdownPos {
@@ -59,7 +63,7 @@ function posBelow(el: HTMLElement): DropdownPos {
   return { top: rect.bottom + 4, left: rect.left };
 }
 
-export function Toolbar({ editor, onOpen, onSave }: ToolbarProps) {
+export function Toolbar({ editor, onOpen, onSave, onNewDocument, onToggleSidebar }: ToolbarProps) {
   const [headingOpen, setHeadingOpen] = useState(false);
   const [headingPos, setHeadingPos] = useState<DropdownPos | null>(null);
   const [colorOpen, setColorOpen] = useState(false);
@@ -143,6 +147,14 @@ export function Toolbar({ editor, onOpen, onSave }: ToolbarProps) {
 
   return (
     <div className="editor-toolbar">
+      <button
+        className="toolbar-button toolbar-hamburger"
+        onClick={onToggleSidebar}
+        title="Toggle sidebar (⌘0)"
+      >
+        <Menu size={iconSize} />
+      </button>
+
       {/* File operations */}
       <div className="toolbar-group">
         <button
@@ -448,6 +460,14 @@ export function Toolbar({ editor, onOpen, onSave }: ToolbarProps) {
           <Image size={iconSize} />
         </button>
       </div>
+
+      <button
+        className="toolbar-button toolbar-new-doc"
+        onClick={onNewDocument}
+        title="New document"
+      >
+        <SquarePen size={iconSize} />
+      </button>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -39,6 +39,16 @@ interface FileContents {
   path: string;
 }
 
+interface EditorProps {
+  onToggleSidebar: () => void;
+  externalFilePath: string | null;
+  onExternalFileConsumed: () => void;
+}
+
+export interface EditorHandle {
+  saveIfDirty: () => Promise<boolean>;
+}
+
 const MD_FILTERS = [{ name: "Markdown", extensions: ["md", "mdx", "markdown", "txt"] }];
 
 function countFromDoc(doc: import("@tiptap/pm/model").Node) {
@@ -48,7 +58,10 @@ function countFromDoc(doc: import("@tiptap/pm/model").Node) {
   return { chars, words };
 }
 
-export function Editor() {
+export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
+  { onToggleSidebar, externalFilePath, onExternalFileConsumed },
+  ref,
+) {
   const [tokenCount, setTokenCount] = useState<number | null>(null);
   const [isStale, setIsStale] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -61,6 +74,12 @@ export function Editor() {
   const versionRef = useRef(0);
   const countedVersionRef = useRef(0);
   const savedVersionRef = useRef(0);
+  const externalLoadIdRef = useRef(0);
+  const isDirtyRef = useRef(false);
+
+  useEffect(() => {
+    isDirtyRef.current = isDirty;
+  }, [isDirty]);
 
   const editor = useEditor({
     extensions: [
@@ -164,6 +183,10 @@ export function Editor() {
 
   const handleOpenFile = useCallback(async () => {
     if (!editor) return;
+    if (isDirtyRef.current) {
+      const ok = window.confirm("Discard unsaved changes?");
+      if (!ok) return;
+    }
     const selected = await open({ multiple: false, filters: MD_FILTERS });
     if (!selected) return;
     try {
@@ -182,13 +205,23 @@ export function Editor() {
     }
   }, [editor]);
 
-  const handleSaveFile = useCallback(async () => {
-    if (!editor) return;
+  const handleSaveFile = useCallback(async (): Promise<boolean> => {
+    if (!editor) return false;
     const markdown = serializeToMarkdown(editor);
     let filePath = currentFilePath;
+    if (filePath) {
+      const exists = await invoke<boolean>("path_exists", { path: filePath });
+      if (!exists) {
+        const reselect = window.confirm(
+          `The file "${filePath.split(/[/\\]/).pop()}" no longer exists. Save as a new file?`,
+        );
+        if (!reselect) return false;
+        filePath = null;
+      }
+    }
     if (!filePath) {
-      const selected = await save({ filters: MD_FILTERS, defaultPath: "untitled.md" });
-      if (!selected) return;
+      const selected = await save({ filters: MD_FILTERS, defaultPath: currentFilePath || "untitled.md" });
+      if (!selected) return false;
       filePath = selected;
     }
     try {
@@ -196,9 +229,11 @@ export function Editor() {
       setCurrentFilePath(filePath);
       savedVersionRef.current = versionRef.current;
       setIsDirty(false);
+      return true;
     } catch (e) {
       console.error("Save file error:", e);
       setError(String(e));
+      return false;
     }
   }, [editor, currentFilePath]);
 
@@ -218,6 +253,69 @@ export function Editor() {
     }
   }, [editor, currentFilePath]);
 
+  const saveIfDirty = useCallback(async (): Promise<boolean> => {
+    if (!isDirtyRef.current) return true;
+    return await handleSaveFile();
+  }, [handleSaveFile]);
+
+  const handleNewDocument = useCallback(async () => {
+    if (!editor) return;
+    if (isDirtyRef.current) {
+      const saved = await handleSaveFile();
+      if (!saved) return;
+    }
+    editor.commands.setContent("");
+    setCurrentFilePath(null);
+    versionRef.current = 0;
+    savedVersionRef.current = 0;
+    countedVersionRef.current = 0;
+    setTokenCount(null);
+    setIsStale(true);
+    setIsDirty(false);
+    setError(null);
+    const c = countFromDoc(editor.state.doc);
+    setWordCount(c.words);
+    setCharCount(c.chars);
+    editor.commands.focus();
+  }, [editor, handleSaveFile]);
+
+  useImperativeHandle(ref, () => ({ saveIfDirty }), [saveIfDirty]);
+
+  useEffect(() => {
+    if (!externalFilePath || !editor) return;
+    if (isDirtyRef.current) {
+      const ok = window.confirm("Discard unsaved changes?");
+      if (!ok) {
+        onExternalFileConsumed();
+        return;
+      }
+    }
+    externalLoadIdRef.current += 1;
+    const loadId = externalLoadIdRef.current;
+    (async () => {
+      try {
+        const result = await invoke<FileContents>("read_file", { path: externalFilePath });
+        if (loadId !== externalLoadIdRef.current) return;
+        const html = parseMarkdownToHtml(result.content);
+        editor.commands.setContent(html);
+        setCurrentFilePath(result.path);
+        const c = countFromDoc(editor.state.doc);
+        setWordCount(c.words);
+        setCharCount(c.chars);
+        savedVersionRef.current = versionRef.current;
+        setIsDirty(false);
+      } catch (e) {
+        if (loadId !== externalLoadIdRef.current) return;
+        console.error("Open file error:", e);
+        setError(String(e));
+      } finally {
+        if (loadId === externalLoadIdRef.current) {
+          onExternalFileConsumed();
+        }
+      }
+    })();
+  }, [externalFilePath, editor, onExternalFileConsumed]);
+
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const mod = e.metaKey || e.ctrlKey;
@@ -230,11 +328,14 @@ export function Editor() {
       } else if (mod && e.key === "s") {
         e.preventDefault();
         handleSaveFile();
+      } else if (mod && e.key === "0") {
+        e.preventDefault();
+        onToggleSidebar();
       }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleOpenFile, handleSaveFile, handleSaveAs]);
+  }, [handleOpenFile, handleSaveFile, handleSaveAs, onToggleSidebar]);
 
   return (
     <div className="editor-container">
@@ -243,6 +344,8 @@ export function Editor() {
           editor={editor}
           onOpen={handleOpenFile}
           onSave={handleSaveFile}
+          onNewDocument={handleNewDocument}
+          onToggleSidebar={onToggleSidebar}
         />
       )}
       {editor && <SpellcheckMenu editor={editor} />}
@@ -299,4 +402,4 @@ export function Editor() {
       )}
     </div>
   );
-}
+});

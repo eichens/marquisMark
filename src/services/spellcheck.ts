@@ -6,6 +6,7 @@ type NSpellInstance = ReturnType<typeof nspell>;
 
 let spellInstance: NSpellInstance | null = null;
 const ignoreSet = new Set<string>();
+const autoCorrectSkipSet = new Set<string>();
 
 function getSpeller(): NSpellInstance {
   if (!spellInstance) {
@@ -41,6 +42,7 @@ export function autoCorrection(word: string): string | null {
   if (word.length < 3) return null;
   if (shouldSkip(word)) return null;
   if (ignoreSet.has(word.toLowerCase())) return null;
+  if (autoCorrectSkipSet.has(word.toLowerCase())) return null;
   if (getSpeller().correct(word)) return null;
 
   const suggestions = getSpeller().suggest(word);
@@ -65,6 +67,11 @@ export function autoCorrection(word: string): string | null {
 /** Add a word to the per-session ignore list. */
 export function ignoreWord(word: string): void {
   ignoreSet.add(word.toLowerCase());
+}
+
+/** Prevent future auto-corrections of this word for the rest of the session. */
+export function skipAutoCorrect(word: string): void {
+  autoCorrectSkipSet.add(word.toLowerCase());
 }
 
 /** Words we should never spellcheck. */
