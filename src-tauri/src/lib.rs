@@ -9,6 +9,8 @@ pub fn run() {
             commands::ai::ai_generate,
             commands::file::read_file,
             commands::file::write_file,
+            commands::file::list_directory,
+            commands::file::path_exists,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
