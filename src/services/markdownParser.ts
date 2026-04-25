@@ -22,6 +22,16 @@ function isSelfClosing(line: string): boolean {
   return /\/\s*>\s*$/.test(line.trimEnd());
 }
 
+/**
+ * Extract non-HTML XML-looking blocks (e.g. `<documents>…</documents>`) before
+ * handing the source to `marked`. Without this pass, marked either strips the
+ * tags or misinterprets the content between them. Each block is replaced with
+ * a placeholder `<div>` that the parser will pass through untouched; the real
+ * XML is re-substituted as a `<pre data-xml-block="true">` after parsing.
+ *
+ * Tag classification uses HTML_TAGS as the allow-list — anything not in the set
+ * is treated as prompt-style XML.
+ */
 function extractXmlBlocks(markdown: string): { processed: string; blocks: Map<string, string> } {
   const lines = markdown.split("\n");
   const blocks = new Map<string, string>();

@@ -42,16 +42,21 @@ function findTags(doc: ProseMirrorNode): TagMatch[] {
   return tags;
 }
 
+/**
+ * Assign a nesting depth to every tag so matching pairs get the same color.
+ *
+ * Matching is by name (name-based stack), not positional — `<a><b></a></b>` is
+ * allowed as text-that-looks-like-XML, but the highlighter pairs by innermost
+ * same-name match and tolerates imbalance. Unmatched tags fall back to depth 0.
+ */
 function assignDepths(tags: TagMatch[]): void {
   const stack: { name: string; depth: number }[] = [];
 
   for (const tag of tags) {
     if (!tag.isClosing) {
-      // Opening tag: depth = current stack size, then push
       tag.depth = stack.length;
       stack.push({ name: tag.name, depth: tag.depth });
     } else {
-      // Closing tag: find matching opening tag from top of stack
       let matched = false;
       for (let i = stack.length - 1; i >= 0; i--) {
         if (stack[i].name === tag.name) {
@@ -61,13 +66,9 @@ function assignDepths(tags: TagMatch[]): void {
           break;
         }
       }
-      if (!matched) {
-        // Unmatched closing tag: use depth 0
-        tag.depth = 0;
-      }
+      if (!matched) tag.depth = 0;
     }
   }
-  // Unmatched opening tags keep their assigned depth
 }
 
 function buildDecorations(doc: ProseMirrorNode): DecorationSet {

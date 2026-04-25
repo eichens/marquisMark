@@ -103,17 +103,18 @@ export const Spellcheck = Extension.create({
         },
 
         apply(tr, oldState) {
-          // If this transaction carries a full rescan, use it directly
+          // Rescan path: the debounced view.update() below dispatches a
+          // transaction tagged with the plugin key carrying fresh state.
           const meta = tr.getMeta(spellcheckPluginKey) as
             | SpellcheckPluginState
             | undefined;
           if (meta) return meta;
 
-          // If doc didn't change, keep existing state
           if (!tr.docChanged) return oldState;
 
-          // Map existing decorations through the changes for visual continuity
-          // (a full rescan follows via the debounced view update)
+          // Interim path: the user is still typing, we don't rescan on every
+          // keystroke. Map existing decorations through the change so they
+          // stay glued to their words until the debounced rescan arrives.
           return {
             decorations: oldState.decorations.map(tr.mapping, tr.doc),
             misspelled: oldState.misspelled
@@ -182,14 +183,21 @@ export const Spellcheck = Extension.create({
         };
       },
 
+      /**
+       * Auto-correct fires only in a narrow shape to avoid corrupting paste,
+       * find-replace, undo, or multi-step edits. The transaction must be:
+       *   1. Not our own rescan (we tag those via setMeta and skip them)
+       *   2. Exactly one step, of type "replace" with inline content
+       *   3. Inserting exactly one text character that is a word boundary
+       *      (i.e. the user just typed space/punctuation after a word)
+       * Anything else — paste, delete, formatting, programmatic edits — is
+       * left alone.
+       */
       appendTransaction(transactions, _oldState, newState) {
-        // Auto-correct: detect word boundary typed after a misspelled word
         const lastTr = transactions[transactions.length - 1];
         if (!lastTr || !lastTr.docChanged || lastTr.steps.length !== 1) {
           return null;
         }
-
-        // Skip if this transaction was a spellcheck rescan
         if (lastTr.getMeta(spellcheckPluginKey)) return null;
 
         const stepJson = lastTr.steps[0].toJSON();

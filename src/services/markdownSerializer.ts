@@ -2,8 +2,12 @@ import type { Editor } from "@tiptap/react";
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 
 /**
- * Serializes the TipTap editor document back to raw markdown text.
- * Walks the ProseMirror document tree and emits markdown syntax.
+ * Serializes the TipTap editor document back to raw markdown.
+ *
+ * This is NOT the inverse of `parseMarkdownToHtml` — marked's parser is not
+ * round-trip-safe, so this emitter is hand-written against the node types the
+ * editor actually supports. When you add a new node/mark to the editor, it
+ * must be handled here AND covered by a test in __tests__/roundtrip.test.ts.
  */
 export function serializeToMarkdown(editor: Editor): string {
   const doc = editor.state.doc;

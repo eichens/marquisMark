@@ -23,6 +23,10 @@ pub async fn ai_generate(
         .map(|r| r.to_string())
         .unwrap_or_else(|| "no region configured".to_string());
 
+    // Bedrock supports two auth paths: a bearer token via
+    // `AWS_BEARER_TOKEN_BEDROCK` (simpler, works outside an AWS account) or
+    // IAM credentials from the ambient AWS config. Prefer the token if set
+    // so API-key users don't need IAM configured locally.
     let has_token = std::env::var("AWS_BEARER_TOKEN_BEDROCK")
         .map(|t| !t.is_empty())
         .unwrap_or(false);
