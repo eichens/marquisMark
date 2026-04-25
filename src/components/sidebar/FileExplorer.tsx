@@ -6,6 +6,9 @@ import { LazyStore } from "@tauri-apps/plugin-store";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { FileTreeRow, VisibleRow } from "./FileTreeRow";
 
+// Sentinel path for the in-progress "new document" row. When present in the
+// visible list, the row renders as an `<input>` instead of a `FileTreeRow`.
+// Must not collide with any real filesystem path.
 const PENDING_PATH = "__pending__";
 const STORE_FILE = "settings.json";
 const LAST_FOLDER_KEY = "lastFolder";
@@ -60,6 +63,11 @@ function toNodes(entries: DirEntry[], depth: number): TreeNode[] {
   }));
 }
 
+/**
+ * Flatten the nested tree to the visible-row list the virtualizer consumes.
+ * Collapsed subtrees contribute nothing; expanded-but-still-loading subtrees
+ * emit a single "Loading…" sentinel row so the user sees feedback.
+ */
 function flatten(nodes: TreeNode[], out: VisibleRow[]): void {
   for (const n of nodes) {
     out.push({
@@ -88,6 +96,11 @@ function flatten(nodes: TreeNode[], out: VisibleRow[]): void {
   }
 }
 
+/**
+ * Return a new tree with the node at `path` transformed by `updater`.
+ * Immutable so React re-renders correctly; uncles/siblings keep their refs so
+ * the virtualizer doesn't thrash keys for rows that didn't change.
+ */
 function updateNode(nodes: TreeNode[], path: string, updater: (n: TreeNode) => TreeNode): TreeNode[] {
   return nodes.map((n) => {
     if (n.path === path) return updater(n);
@@ -134,6 +147,10 @@ export function FileExplorer({ onFileSelect, onCreateFile }: FileExplorerProps) 
     virtualizer.measure();
   }, [visible.length, virtualizer]);
 
+  // Shared by `pickFolder` (persist=true) and the restore-on-mount effect
+  // (persist=false): restoring shouldn't rewrite a value we already have.
+  // On failure during restore we clear the stored path so next mount doesn't
+  // keep trying to reload a deleted folder.
   const loadFolder = useCallback(async (path: string, persist: boolean) => {
     try {
       const entries = await invoke<DirEntry[]>("list_directory", { path });

@@ -45,6 +45,11 @@ interface EditorProps {
   onExternalFileConsumed: () => void;
 }
 
+/**
+ * Imperative handle exposed to `App` via `forwardRef`. The sidebar's new-file
+ * flow calls `saveIfDirty()` before creating a new file so the user doesn't
+ * silently lose unsaved work.
+ */
 export interface EditorHandle {
   saveIfDirty: () => Promise<boolean>;
 }
@@ -71,10 +76,18 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
   const [charCount, setCharCount] = useState(0);
   const [currentFilePath, setCurrentFilePath] = useState<string | null>(null);
   const [isDirty, setIsDirty] = useState(false);
+  // Version-ref scheme for detecting staleness without re-binding callbacks.
+  // `versionRef` increments on every doc change. The other refs snapshot it
+  // at the moment of an event so we can later compare:
+  //   - isDirty  = version !== saved   (something changed since last save)
+  //   - isStale  = version !== counted (token count is for an older doc)
+  //   - load-race = loadId !== current (a newer external file was requested)
   const versionRef = useRef(0);
   const countedVersionRef = useRef(0);
   const savedVersionRef = useRef(0);
   const externalLoadIdRef = useRef(0);
+  // Mirror of `isDirty` so callbacks/effects can read the current value without
+  // re-binding every time it flips. Updated by the effect below.
   const isDirtyRef = useRef(false);
 
   useEffect(() => {
@@ -281,6 +294,11 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
 
   useImperativeHandle(ref, () => ({ saveIfDirty }), [saveIfDirty]);
 
+  // Load a file whose path was set externally (sidebar click, new-file flow).
+  // Guards against two hazards:
+  //   - Unsaved work: prompts the user before clobbering.
+  //   - Stale response: if the user clicks file A then B before A resolves,
+  //     only the latest request's result is applied (loadId comparison).
   useEffect(() => {
     if (!externalFilePath || !editor) return;
     if (isDirtyRef.current) {

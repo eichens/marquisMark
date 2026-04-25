@@ -24,7 +24,7 @@ pub async fn count_tokens(
         .map(|r| r.to_string())
         .unwrap_or_else(|| "no region configured".to_string());
 
-    // Use bearer token from AWS_BEARER_TOKEN_BEDROCK if set, otherwise fall back to IAM credentials
+    // See ai.rs for the bearer-vs-IAM rationale — same policy here.
     let has_token = std::env::var("AWS_BEARER_TOKEN_BEDROCK")
         .map(|t| !t.is_empty())
         .unwrap_or(false);

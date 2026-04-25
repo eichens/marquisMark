@@ -2,6 +2,14 @@ import { Node, mergeAttributes } from "@tiptap/core";
 import { Fragment } from "@tiptap/pm/model";
 import { Plugin, PluginKey, TextSelection } from "@tiptap/pm/state";
 
+/**
+ * Custom node for non-HTML XML blocks rendered as `<pre data-xml-block="true">`.
+ *
+ * Dual source of truth: text children (so the cursor and editing work) AND the
+ * `rawContent` attribute (the source used by the markdown serializer). The
+ * appendTransaction plugin below keeps `rawContent` in sync with `textContent`
+ * on every doc change — do not read from textContent during serialization.
+ */
 export const XmlBlock = Node.create({
   name: "xmlBlock",
   group: "block",

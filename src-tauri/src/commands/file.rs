@@ -47,6 +47,12 @@ pub async fn write_file(path: String, content: String) -> Result<(), String> {
     Ok(())
 }
 
+/// Single-level directory listing. Not recursive — the frontend lazy-loads
+/// child entries as folders expand.
+///
+/// Filters out dotfiles and the two build-artifact directories most likely to
+/// dump thousands of useless entries into the tree. If a user ever needs to
+/// see hidden files, this is where to add a toggle.
 #[tauri::command]
 pub async fn list_directory(path: String) -> Result<Vec<DirEntry>, String> {
     let p = Path::new(&path);
@@ -70,6 +76,8 @@ pub async fn list_directory(path: String) -> Result<Vec<DirEntry>, String> {
             is_dir: meta.is_dir(),
         });
     }
+    // Directories first (note the `b.cmp(&a)` — `true` sorts before `false`),
+    // then case-insensitive alphabetical within each group.
     entries.sort_by(|a, b| {
         b.is_dir.cmp(&a.is_dir).then(a.name.to_lowercase().cmp(&b.name.to_lowercase()))
     });

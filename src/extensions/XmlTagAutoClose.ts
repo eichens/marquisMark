@@ -62,6 +62,10 @@ function handleAutoClose(
   const { tr, schema } = state;
   const paragraphType = schema.nodes.paragraph;
 
+  // Line-start branch: the tag owns its line, so treat `>` as block-open.
+  // Emit three paragraphs (opening line, indented empty content line, closing
+  // line) and place the cursor inside the content paragraph. Inline branch
+  // (below) just inserts `></tag>` on the same line.
   if (lineStartMatch) {
     const currentIndent = lineStartMatch[1];
     const contentIndent = currentIndent + "  ";
