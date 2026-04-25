@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { Editor, EditorHandle } from "./components/editor/Editor";
 import { Sidebar } from "./components/sidebar/Sidebar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { AppLogo } from "./components/AppLogo";
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -48,6 +49,13 @@ function App() {
 
   return (
     <div className="app">
+      <header className="app-header">
+        <AppLogo className="app-header-icon" size={18} />
+        <span className="app-header-title">
+          Marquis Mark <span className="app-header-sep">|</span> Mark 1
+        </span>
+      </header>
+      <div className="app-body">
       <Sidebar
         isOpen={sidebarOpen}
         onClose={handleToggleSidebar}
@@ -64,6 +72,7 @@ function App() {
             onExternalFileConsumed={handleExternalFileConsumed}
           />
         </ErrorBoundary>
+      </div>
       </div>
     </div>
   );

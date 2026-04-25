@@ -1,0 +1,24 @@
+interface AppLogoProps {
+  className?: string;
+  size?: number;
+}
+
+export function AppLogo({ className, size = 18 }: AppLogoProps) {
+  const width = (64 / 57) * size;
+  return (
+    <svg
+      className={className}
+      width={width}
+      height={size}
+      viewBox="0 0 64 57"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path d="M29 32.6543V52.6768L28.9053 52.79L4 23.2461V2.99902L29 32.6543Z" fill="currentColor" />
+      <path d="M16 47C16 50.3137 13.3137 53 10 53C6.68629 53 4 50.3137 4 47C4 43.6863 6.68629 41 10 41C13.3137 41 16 43.6863 16 47Z" fill="currentColor" />
+      <path d="M47 3H60V53H47V3Z" fill="currentColor" />
+      <path d="M44.6426 3.13574L44.6504 18.4209L32.3447 30.7393L25.2354 22.292L44.5068 3L44.6426 3.13574Z" fill="currentColor" />
+    </svg>
+  );
+}

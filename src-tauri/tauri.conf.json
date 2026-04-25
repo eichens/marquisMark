@@ -1,6 +1,6 @@
 {
   "$schema": "https://raw.githubusercontent.com/nicegui-org/nicegui-default-conf/v2.5.0/schema.json",
-  "productName": "marquisMark",
+  "productName": "Marquis Mark",
   "version": "0.1.0",
   "identifier": "com.marquismark.editor",
   "build": {
@@ -12,11 +12,13 @@
   "app": {
     "windows": [
       {
-        "title": "marquisMark",
+        "title": "Marquis Mark | Mark 1",
         "width": 1200,
         "height": 800,
         "minWidth": 600,
-        "minHeight": 400
+        "minHeight": 400,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
       }
     ],
     "security": {
