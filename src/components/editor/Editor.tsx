@@ -273,6 +273,13 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
 
   const handleNewDocument = useCallback(async () => {
     if (!editor) return;
+    // TODO: decide the UX when the current doc is dirty AND untitled
+    // (currentFilePath === null). Today this falls through to handleSaveFile,
+    // which opens a Save-As dialog — so clicking "new document" on an unsaved
+    // untitled doc forces a naming prompt before the new doc appears. Options
+    // to consider: (a) keep Save-As prompt, (b) discard silently with confirm,
+    // (c) auto-name "untitled-N.md" in the last-opened folder. Same question
+    // applies to the sidebar new-doc flow via App.handleCreateFile.
     if (isDirtyRef.current) {
       const saved = await handleSaveFile();
       if (!saved) return;
