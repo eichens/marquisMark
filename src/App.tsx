@@ -50,6 +50,7 @@ function App() {
     <div className="app">
       <Sidebar
         isOpen={sidebarOpen}
+        onClose={handleToggleSidebar}
         onFileSelect={setExternalFilePath}
         onCreateFile={handleCreateFile}
       />
@@ -57,6 +58,7 @@ function App() {
         <ErrorBoundary>
           <Editor
             ref={editorRef}
+            sidebarOpen={sidebarOpen}
             onToggleSidebar={handleToggleSidebar}
             externalFilePath={externalFilePath}
             onExternalFileConsumed={handleExternalFileConsumed}

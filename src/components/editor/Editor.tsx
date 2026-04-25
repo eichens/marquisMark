@@ -40,6 +40,7 @@ interface FileContents {
 }
 
 interface EditorProps {
+  sidebarOpen: boolean;
   onToggleSidebar: () => void;
   externalFilePath: string | null;
   onExternalFileConsumed: () => void;
@@ -63,8 +64,12 @@ function countFromDoc(doc: import("@tiptap/pm/model").Node) {
   return { chars, words };
 }
 
+// NOTE: this component is doing ~6 jobs and is a candidate for extraction into
+// custom hooks (useTiptapEditor, useDirtyTracking, useFileIO, useExternalFile,
+// useTokenCount). See the "Refactoring backlog" section in CLAUDE.md for the
+// full plan. Not urgent — wait until a feature makes the friction real.
 export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
-  { onToggleSidebar, externalFilePath, onExternalFileConsumed },
+  { sidebarOpen, onToggleSidebar, externalFilePath, onExternalFileConsumed },
   ref,
 ) {
   const [tokenCount, setTokenCount] = useState<number | null>(null);
@@ -371,6 +376,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
           onSave={handleSaveFile}
           onNewDocument={handleNewDocument}
           onToggleSidebar={onToggleSidebar}
+          showHamburger={!sidebarOpen}
         />
       )}
       {editor && <SpellcheckMenu editor={editor} />}
