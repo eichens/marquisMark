@@ -36,6 +36,7 @@ interface ToolbarProps {
   onSave: () => void;
   onNewDocument: () => void;
   onToggleSidebar: () => void;
+  showHamburger: boolean;
 }
 
 interface DropdownPos {
@@ -63,7 +64,7 @@ function posBelow(el: HTMLElement): DropdownPos {
   return { top: rect.bottom + 4, left: rect.left };
 }
 
-export function Toolbar({ editor, onOpen, onSave, onNewDocument, onToggleSidebar }: ToolbarProps) {
+export function Toolbar({ editor, onOpen, onSave, onNewDocument, onToggleSidebar, showHamburger }: ToolbarProps) {
   const [headingOpen, setHeadingOpen] = useState(false);
   const [headingPos, setHeadingPos] = useState<DropdownPos | null>(null);
   const [colorOpen, setColorOpen] = useState(false);
@@ -147,13 +148,15 @@ export function Toolbar({ editor, onOpen, onSave, onNewDocument, onToggleSidebar
 
   return (
     <div className="editor-toolbar">
-      <button
-        className="toolbar-button toolbar-hamburger"
-        onClick={onToggleSidebar}
-        title="Toggle sidebar (⌘0)"
-      >
-        <Menu size={iconSize} />
-      </button>
+      {showHamburger && (
+        <button
+          className="toolbar-button toolbar-hamburger"
+          onClick={onToggleSidebar}
+          title="Toggle sidebar (⌘0)"
+        >
+          <Menu size={iconSize} />
+        </button>
+      )}
 
       {/* File operations */}
       <div className="toolbar-group">
