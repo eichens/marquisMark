@@ -79,8 +79,49 @@ body {
 /* App layout */
 .app {
   display: flex;
+  flex-direction: column;
   height: 100vh;
   width: 100vw;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  /* Left padding reserves space for the macOS traffic-light controls
+     rendered on top by `titleBarStyle: "Overlay"`. */
+  padding: 0.45rem 0.85rem 0.45rem 5rem;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.app-header-icon {
+  height: 18px;
+  width: auto;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.app-header-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.01em;
+  user-select: none;
+}
+
+.app-header-sep {
+  color: var(--text-muted);
+  font-weight: 400;
+  margin: 0 0.35rem;
+}
+
+.app-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .editor-pane {
