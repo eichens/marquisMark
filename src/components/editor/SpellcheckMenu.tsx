@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import type { Editor } from "@tiptap/react";
 import { triggerRescan } from "../../extensions/Spellcheck";
 import { ignoreWord } from "../../services/spellcheck";
@@ -93,7 +94,7 @@ export function SpellcheckMenu({ editor }: SpellcheckMenuProps) {
 
   if (!menu) return null;
 
-  return (
+  return createPortal(
     <div
       ref={menuRef}
       className="spellcheck-menu"
@@ -123,6 +124,7 @@ export function SpellcheckMenu({ editor }: SpellcheckMenuProps) {
           Ignore All
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
