@@ -49,9 +49,9 @@ function App() {
 
   return (
     <div className="app">
-      <header className="app-header">
-        <AppLogo className="app-header-icon" size={18} />
-        <span className="app-header-title">
+      <header className="app-header" data-tauri-drag-region>
+        <AppLogo className="app-header-icon" size={18} data-tauri-drag-region />
+        <span className="app-header-title" data-tauri-drag-region>
           Marquis Mark <span className="app-header-sep">|</span> Mark 1
         </span>
       </header>
