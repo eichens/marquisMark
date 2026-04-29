@@ -1,3 +1,4 @@
+use base64::{engine::general_purpose, Engine as _};
 use serde::Serialize;
 use std::fs;
 use std::path::Path;
@@ -32,6 +33,31 @@ pub async fn read_file(path: String) -> Result<FileContents, String> {
 #[tauri::command]
 pub async fn path_exists(path: String) -> bool {
     Path::new(&path).exists()
+}
+
+#[tauri::command]
+pub async fn read_file_as_data_url(path: String) -> Result<String, String> {
+    let p = Path::new(&path);
+    if !p.exists() {
+        return Err(format!("File not found: {path}"));
+    }
+    let bytes = fs::read(p).map_err(|e| format!("Failed to read file: {e}"))?;
+    let mime = match p
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|s| s.to_lowercase())
+        .as_deref()
+    {
+        Some("png") => "image/png",
+        Some("jpg") | Some("jpeg") => "image/jpeg",
+        Some("gif") => "image/gif",
+        Some("webp") => "image/webp",
+        Some("svg") => "image/svg+xml",
+        Some("bmp") => "image/bmp",
+        _ => "application/octet-stream",
+    };
+    let encoded = general_purpose::STANDARD.encode(&bytes);
+    Ok(format!("data:{mime};base64,{encoded}"))
 }
 
 #[tauri::command]

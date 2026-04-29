@@ -11,6 +11,7 @@ pub fn run() {
             commands::file::write_file,
             commands::file::list_directory,
             commands::file::path_exists,
+            commands::file::read_file_as_data_url,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
