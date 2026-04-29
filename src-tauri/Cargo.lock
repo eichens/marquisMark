@@ -2424,6 +2424,7 @@ version = "0.1.0"
 dependencies = [
  "aws-config",
  "aws-sdk-bedrockruntime",
+ "base64 0.22.1",
  "dotenvy",
  "serde",
  "serde_json",

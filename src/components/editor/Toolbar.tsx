@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import type { Editor } from "@tiptap/react";
+import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 import {
   Menu,
   SquarePen,
@@ -137,10 +139,25 @@ export function Toolbar({ editor, onOpen, onSave, onNewDocument, onToggleSidebar
     }
   }, [editor]);
 
-  const insertImage = useCallback(() => {
-    const url = window.prompt("Image URL:");
-    if (url) {
-      editor.chain().focus().setImage({ src: url }).run();
+  const insertImage = useCallback(async () => {
+    const selected = await open({
+      multiple: false,
+      filters: [
+        {
+          name: "Image",
+          extensions: ["png", "jpg", "jpeg", "gif", "webp", "svg", "bmp"],
+        },
+      ],
+    });
+    if (!selected || typeof selected !== "string") return;
+    try {
+      const dataUrl = await invoke<string>("read_file_as_data_url", {
+        path: selected,
+      });
+      editor.chain().focus().setImage({ src: dataUrl }).run();
+    } catch (e) {
+      console.error("Insert image error:", e);
+      window.alert(`Failed to insert image: ${e}`);
     }
   }, [editor]);
 
