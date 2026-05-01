@@ -12,9 +12,9 @@ A local desktop markdown editor built for authoring prompts for Claude and GPT m
     <img src="./blank_screenshot.png" alt="MarquisMark" width="700"/>
 </div>
 
-<p align="center">
-  <video src="screen_record.mp4" controls width="700"></video>
-</p>
+
+ <video src="./screen_record.mp4" controls width="700"></video>
+
 
 ## Features
 
