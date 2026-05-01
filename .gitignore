@@ -6,3 +6,4 @@ src-tauri/target/
 .env
 .idea/*
 ./src-tauri/.env
+Claude.md
