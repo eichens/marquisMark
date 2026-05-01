@@ -11,7 +11,7 @@ A local desktop markdown editor built for authoring prompts for Claude and GPT m
 <div align="center">
     <img src="./blank_screenshot.png" alt="MarquisMark" width="700"/>
 </div>
-
+https://github.com/user-attachments/assets/60b887e3-2d94-476c-80cb-e1e5e488ab2f
 
  <video src="./screen_record.mp4" controls width="700"></video>
 
