@@ -9,8 +9,12 @@
 A local desktop markdown editor built for authoring prompts for Claude and GPT models. Think Typora, but purpose-built for prompt engineering.
 
 <div align="center">
-    <img src="./blank_screenshot.png" alt="MarquisMark" width="600"/>
+    <img src="./blank_screenshot.png" alt="MarquisMark" width="700"/>
 </div>
+
+<p align="center">
+  <video src="screen_record.mp4" controls width="700"></video>
+</p>
 
 ## Features
 
