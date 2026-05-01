@@ -8,7 +8,7 @@
 
 A local desktop markdown editor built for authoring prompts for Claude and GPT models. Think Typora, but purpose-built for prompt engineering.
 
-<div>
+<div align="center">
     <img src="./blank_screenshot.png" alt="MarquisMark" width="600"/>
 </div>
 
@@ -21,11 +21,11 @@ A local desktop markdown editor built for authoring prompts for Claude and GPT m
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Desktop | [Tauri v2](https://v2.tauri.app/) (Rust backend, system webview) |
-| Frontend | React 19 + TypeScript + Vite |
-| Editor | [TipTap v2](https://tiptap.dev/) (ProseMirror-based WYSIWYG) |
+|   Layer    | Technology                                                        |
+|:----------:|:------------------------------------------------------------------|
+|  Desktop   | [Tauri v2](https://v2.tauri.app/) (Rust backend, system webview)  |
+|  Frontend  | React 19 + TypeScript + Vite                                      |
+|   Editor   | [TipTap v2](https://tiptap.dev/) (ProseMirror-based WYSIWYG)      |
 
 ## Prerequisites
 
