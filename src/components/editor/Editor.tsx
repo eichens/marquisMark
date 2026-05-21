@@ -273,21 +273,24 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
 
   const saveIfDirty = useCallback(async (): Promise<boolean> => {
     if (!isDirtyRef.current) return true;
+    // Untitled + dirty: skip the Save-As dialog and let the caller's own
+    // confirm flow (e.g. the externalFilePath effect's "Discard unsaved
+    // changes?") handle the decision. Forcing a Save-As here would derail
+    // the sidebar's new-file flow with an unrelated naming prompt.
+    if (!currentFilePath) return true;
     return await handleSaveFile();
-  }, [handleSaveFile]);
+  }, [handleSaveFile, currentFilePath]);
 
   const handleNewDocument = useCallback(async () => {
     if (!editor) return;
-    // TODO: decide the UX when the current doc is dirty AND untitled
-    // (currentFilePath === null). Today this falls through to handleSaveFile,
-    // which opens a Save-As dialog — so clicking "new document" on an unsaved
-    // untitled doc forces a naming prompt before the new doc appears. Options
-    // to consider: (a) keep Save-As prompt, (b) discard silently with confirm,
-    // (c) auto-name "untitled-N.md" in the last-opened folder. Same question
-    // applies to the sidebar new-doc flow via App.handleCreateFile.
     if (isDirtyRef.current) {
-      const saved = await handleSaveFile();
-      if (!saved) return;
+      if (currentFilePath) {
+        const saved = await handleSaveFile();
+        if (!saved) return;
+      } else {
+        const ok = window.confirm("Discard unsaved changes?");
+        if (!ok) return;
+      }
     }
     editor.commands.setContent("");
     setCurrentFilePath(null);
@@ -302,7 +305,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
     setWordCount(c.words);
     setCharCount(c.chars);
     editor.commands.focus();
-  }, [editor, handleSaveFile]);
+  }, [editor, handleSaveFile, currentFilePath]);
 
   useImperativeHandle(ref, () => ({ saveIfDirty }), [saveIfDirty]);
 
