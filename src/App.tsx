@@ -1,14 +1,22 @@
 import { useState, useCallback, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { Editor, EditorHandle } from "./components/editor/Editor";
-import { Sidebar } from "./components/sidebar/Sidebar";
+import { Sidebar, SidebarHandle } from "./components/sidebar/Sidebar";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { AppLogo } from "./components/AppLogo";
+import { ErrorProvider, useErrorLog } from "./contexts/ErrorContext";
+import { ErrorBannerStack } from "./components/errors/ErrorBannerStack";
+import { ErrorDashboard } from "./components/errors/ErrorDashboard";
+import { ConfirmDialog } from "./components/errors/ConfirmDialog";
+import { GlobalErrorListeners } from "./components/errors/GlobalErrorListeners";
 
-function App() {
+function AppShell() {
+  const { pushError } = useErrorLog();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [externalFilePath, setExternalFilePath] = useState<string | null>(null);
+  const [dashboardOpen, setDashboardOpen] = useState(false);
   const editorRef = useRef<EditorHandle>(null);
+  const sidebarRef = useRef<SidebarHandle>(null);
 
   const handleToggleSidebar = useCallback(() => {
     setSidebarOpen((o) => !o);
@@ -16,6 +24,13 @@ function App() {
 
   const handleExternalFileConsumed = useCallback(() => {
     setExternalFilePath(null);
+  }, []);
+
+  const handleOpenDashboard = useCallback(() => setDashboardOpen(true), []);
+  const handleCloseDashboard = useCallback(() => setDashboardOpen(false), []);
+
+  const handleFileSaved = useCallback(() => {
+    sidebarRef.current?.refresh();
   }, []);
 
   const handleCreateFile = useCallback(
@@ -32,7 +47,11 @@ function App() {
       try {
         const exists = await invoke<boolean>("path_exists", { path: fullPath });
         if (exists) {
-          window.alert(`A file named "${finalName}" already exists in this folder.`);
+          pushError({
+            message: `A file named "${finalName}" already exists in this folder.`,
+            level: "warn",
+            source: "create_file",
+          });
           return null;
         }
         await invoke("write_file", { path: fullPath, content: "" });
@@ -40,11 +59,11 @@ function App() {
         return fullPath;
       } catch (e) {
         console.error("Create file error:", e);
-        window.alert(`Failed to create file: ${e}`);
+        pushError({ message: `Failed to create file: ${e}`, source: "create_file" });
         return null;
       }
     },
-    [],
+    [pushError],
   );
 
   return (
@@ -56,25 +75,40 @@ function App() {
         </span>
       </header>
       <div className="app-body">
-      <Sidebar
-        isOpen={sidebarOpen}
-        onClose={handleToggleSidebar}
-        onFileSelect={setExternalFilePath}
-        onCreateFile={handleCreateFile}
-      />
-      <div className="editor-pane">
-        <ErrorBoundary>
-          <Editor
-            ref={editorRef}
-            sidebarOpen={sidebarOpen}
-            onToggleSidebar={handleToggleSidebar}
-            externalFilePath={externalFilePath}
-            onExternalFileConsumed={handleExternalFileConsumed}
-          />
-        </ErrorBoundary>
+        <Sidebar
+          ref={sidebarRef}
+          isOpen={sidebarOpen}
+          onClose={handleToggleSidebar}
+          onFileSelect={setExternalFilePath}
+          onCreateFile={handleCreateFile}
+        />
+        <div className="editor-pane">
+          <ErrorBoundary>
+            <Editor
+              ref={editorRef}
+              sidebarOpen={sidebarOpen}
+              onToggleSidebar={handleToggleSidebar}
+              externalFilePath={externalFilePath}
+              onExternalFileConsumed={handleExternalFileConsumed}
+              onOpenErrorLog={handleOpenDashboard}
+              onFileSaved={handleFileSaved}
+            />
+          </ErrorBoundary>
+          {dashboardOpen && <ErrorDashboard onClose={handleCloseDashboard} />}
+        </div>
       </div>
-      </div>
+      <ErrorBannerStack />
+      <ConfirmDialog />
+      <GlobalErrorListeners />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <ErrorProvider>
+      <AppShell />
+    </ErrorProvider>
   );
 }
 

@@ -27,6 +27,8 @@ import { Toolbar } from "./Toolbar";
 import { SpellcheckMenu } from "./SpellcheckMenu";
 import { Spellcheck } from "../../extensions/Spellcheck";
 import { AiBubbleMenu } from "./AiBubbleMenu";
+import { ErrorBadge } from "../errors/ErrorBadge";
+import { useErrorLog } from "../../contexts/ErrorContext";
 
 const lowlight = createLowlight(common);
 
@@ -44,6 +46,8 @@ interface EditorProps {
   onToggleSidebar: () => void;
   externalFilePath: string | null;
   onExternalFileConsumed: () => void;
+  onOpenErrorLog: () => void;
+  onFileSaved?: (path: string) => void;
 }
 
 /**
@@ -69,13 +73,23 @@ function countFromDoc(doc: import("@tiptap/pm/model").Node) {
 // useTokenCount). See the "Refactoring backlog" section in CLAUDE.md for the
 // full plan. Not urgent — wait until a feature makes the friction real.
 export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
-  { sidebarOpen, onToggleSidebar, externalFilePath, onExternalFileConsumed },
+  {
+    sidebarOpen,
+    onToggleSidebar,
+    externalFilePath,
+    onExternalFileConsumed,
+    onOpenErrorLog,
+    onFileSaved,
+  },
   ref,
 ) {
+  const { pushError, confirm: confirmDialog } = useErrorLog();
   const [tokenCount, setTokenCount] = useState<number | null>(null);
   const [isStale, setIsStale] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Token-count-specific error string. Has dedicated inline UI in the status
+  // bar (token-count-error). All other errors flow through pushError.
+  const [tokenError, setTokenError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [wordCount, setWordCount] = useState(0);
   const [charCount, setCharCount] = useState(0);
@@ -150,7 +164,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
     onUpdate: ({ editor }) => {
       versionRef.current += 1;
       setIsStale(true);
-      setError(null);
+      setTokenError(null);
       setIsDirty(versionRef.current !== savedVersionRef.current);
       const c = countFromDoc(editor.state.doc);
       setWordCount(c.words);
@@ -178,7 +192,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
     }
 
     setIsLoading(true);
-    setError(null);
+    setTokenError(null);
 
     const requestVersion = versionRef.current;
 
@@ -192,17 +206,18 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       console.error("Token count error:", e);
-      setError(msg);
+      setTokenError(msg);
       setIsStale(true);
+      pushError({ message: `Token count failed: ${msg}`, source: "count_tokens" });
     } finally {
       setIsLoading(false);
     }
-  }, [editor, isLoading]);
+  }, [editor, isLoading, pushError]);
 
   const handleOpenFile = useCallback(async () => {
     if (!editor) return;
     if (isDirtyRef.current) {
-      const ok = window.confirm("Discard unsaved changes?");
+      const ok = await confirmDialog("Discard unsaved changes?");
       if (!ok) return;
     }
     const selected = await open({ multiple: false, filters: MD_FILTERS });
@@ -219,9 +234,9 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
       setIsDirty(false);
     } catch (e) {
       console.error("Open file error:", e);
-      setError(String(e));
+      pushError({ message: `Failed to open file: ${e}`, source: "read_file" });
     }
-  }, [editor]);
+  }, [editor, confirmDialog, pushError]);
 
   const handleSaveFile = useCallback(async (): Promise<boolean> => {
     if (!editor) return false;
@@ -230,7 +245,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
     if (filePath) {
       const exists = await invoke<boolean>("path_exists", { path: filePath });
       if (!exists) {
-        const reselect = window.confirm(
+        const reselect = await confirmDialog(
           `The file "${filePath.split(/[/\\]/).pop()}" no longer exists. Save as a new file?`,
         );
         if (!reselect) return false;
@@ -247,13 +262,14 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
       setCurrentFilePath(filePath);
       savedVersionRef.current = versionRef.current;
       setIsDirty(false);
+      onFileSaved?.(filePath);
       return true;
     } catch (e) {
       console.error("Save file error:", e);
-      setError(String(e));
+      pushError({ message: `Failed to save file: ${e}`, source: "write_file" });
       return false;
     }
-  }, [editor, currentFilePath]);
+  }, [editor, currentFilePath, confirmDialog, pushError, onFileSaved]);
 
   const handleSaveAs = useCallback(async () => {
     if (!editor) return;
@@ -265,11 +281,12 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
       setCurrentFilePath(selected);
       savedVersionRef.current = versionRef.current;
       setIsDirty(false);
+      onFileSaved?.(selected);
     } catch (e) {
       console.error("Save as error:", e);
-      setError(String(e));
+      pushError({ message: `Failed to save file: ${e}`, source: "write_file" });
     }
-  }, [editor, currentFilePath]);
+  }, [editor, currentFilePath, pushError, onFileSaved]);
 
   const saveIfDirty = useCallback(async (): Promise<boolean> => {
     if (!isDirtyRef.current) return true;
@@ -288,7 +305,7 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
         const saved = await handleSaveFile();
         if (!saved) return;
       } else {
-        const ok = window.confirm("Discard unsaved changes?");
+        const ok = await confirmDialog("Discard unsaved changes?");
         if (!ok) return;
       }
     }
@@ -300,12 +317,12 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
     setTokenCount(null);
     setIsStale(true);
     setIsDirty(false);
-    setError(null);
+    setTokenError(null);
     const c = countFromDoc(editor.state.doc);
     setWordCount(c.words);
     setCharCount(c.chars);
     editor.commands.focus();
-  }, [editor, handleSaveFile, currentFilePath]);
+  }, [editor, handleSaveFile, currentFilePath, confirmDialog]);
 
   useImperativeHandle(ref, () => ({ saveIfDirty }), [saveIfDirty]);
 
@@ -316,16 +333,19 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
   //     only the latest request's result is applied (loadId comparison).
   useEffect(() => {
     if (!externalFilePath || !editor) return;
-    if (isDirtyRef.current) {
-      const ok = window.confirm("Discard unsaved changes?");
-      if (!ok) {
-        onExternalFileConsumed();
-        return;
-      }
-    }
     externalLoadIdRef.current += 1;
     const loadId = externalLoadIdRef.current;
     (async () => {
+      if (isDirtyRef.current) {
+        const ok = await confirmDialog("Discard unsaved changes?");
+        // If a newer load was requested while the user was deciding, abandon
+        // this one entirely — its decision is already moot.
+        if (loadId !== externalLoadIdRef.current) return;
+        if (!ok) {
+          onExternalFileConsumed();
+          return;
+        }
+      }
       try {
         const result = await invoke<FileContents>("read_file", { path: externalFilePath });
         if (loadId !== externalLoadIdRef.current) return;
@@ -340,14 +360,14 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
       } catch (e) {
         if (loadId !== externalLoadIdRef.current) return;
         console.error("Open file error:", e);
-        setError(String(e));
+        pushError({ message: `Failed to open file: ${e}`, source: "read_file" });
       } finally {
         if (loadId === externalLoadIdRef.current) {
           onExternalFileConsumed();
         }
       }
     })();
-  }, [externalFilePath, editor, onExternalFileConsumed]);
+  }, [externalFilePath, editor, onExternalFileConsumed, confirmDialog, pushError]);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -407,10 +427,11 @@ export const Editor = forwardRef<EditorHandle, EditorProps>(function Editor(
           <span>{wordCount} words</span>
           <span>{charCount} characters</span>
           <span className="status-bar-spacer" />
+          <ErrorBadge onClick={onOpenErrorLog} />
           <span className="token-count-section">
-            {error ? (
-              <span className="token-count-error">
-                {error}
+            {tokenError ? (
+              <span className="token-count-error" title={tokenError}>
+                token count failed
               </span>
             ) : isStale || tokenCount === null ? (
               <button
