@@ -1,5 +1,6 @@
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import { ChevronLeft } from "lucide-react";
-import { FileExplorer } from "./FileExplorer";
+import { FileExplorer, FileExplorerHandle } from "./FileExplorer";
 import { Settings } from "./Settings";
 
 interface SidebarProps {
@@ -9,7 +10,20 @@ interface SidebarProps {
   onCreateFile: (parentPath: string, name: string) => Promise<string | null>;
 }
 
-export function Sidebar({ isOpen, onClose, onFileSelect, onCreateFile }: SidebarProps) {
+export interface SidebarHandle {
+  refresh: () => void;
+}
+
+export const Sidebar = forwardRef<SidebarHandle, SidebarProps>(function Sidebar(
+  { isOpen, onClose, onFileSelect, onCreateFile },
+  ref,
+) {
+  const explorerRef = useRef<FileExplorerHandle>(null);
+
+  useImperativeHandle(ref, () => ({
+    refresh: () => explorerRef.current?.refresh(),
+  }), []);
+
   return (
     <div className={`sidebar ${isOpen ? "open" : ""}`}>
       <div className="sidebar-inner">
@@ -22,9 +36,13 @@ export function Sidebar({ isOpen, onClose, onFileSelect, onCreateFile }: Sidebar
             <ChevronLeft size={16} />
           </button>
         </div>
-        <FileExplorer onFileSelect={onFileSelect} onCreateFile={onCreateFile} />
+        <FileExplorer
+          ref={explorerRef}
+          onFileSelect={onFileSelect}
+          onCreateFile={onCreateFile}
+        />
         <Settings />
       </div>
     </div>
   );
-}
+});

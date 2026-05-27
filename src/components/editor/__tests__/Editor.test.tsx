@@ -33,22 +33,45 @@ vi.mock("../../../services/spellcheck", () => ({
 
 import { Editor, type EditorHandle } from "../Editor";
 import { tauri, dialog } from "../../../test/tauri";
+import { ErrorProvider } from "../../../contexts/ErrorContext";
+import { ConfirmDialog } from "../../errors/ConfirmDialog";
+
+function Harness({ children }: { children: React.ReactNode }) {
+  return (
+    <ErrorProvider>
+      {children}
+      <ConfirmDialog />
+    </ErrorProvider>
+  );
+}
 
 function renderEditor(overrides: Partial<Parameters<typeof Editor>[0]> = {}) {
   const ref = createRef<EditorHandle>();
   const onExternalFileConsumed = vi.fn();
   const onToggleSidebar = vi.fn();
+  const onOpenErrorLog = vi.fn();
   const utils = render(
-    <Editor
-      ref={ref}
-      sidebarOpen={false}
-      onToggleSidebar={onToggleSidebar}
-      externalFilePath={null}
-      onExternalFileConsumed={onExternalFileConsumed}
-      {...overrides}
-    />,
+    <Harness>
+      <Editor
+        ref={ref}
+        sidebarOpen={false}
+        onToggleSidebar={onToggleSidebar}
+        externalFilePath={null}
+        onExternalFileConsumed={onExternalFileConsumed}
+        onOpenErrorLog={onOpenErrorLog}
+        {...overrides}
+      />
+    </Harness>,
   );
-  return { ...utils, ref, onExternalFileConsumed, onToggleSidebar };
+  const rerender = (ui: React.ReactElement) => utils.rerender(<Harness>{ui}</Harness>);
+  return {
+    ...utils,
+    rerender,
+    ref,
+    onExternalFileConsumed,
+    onToggleSidebar,
+    onOpenErrorLog,
+  };
 }
 
 describe("Editor", () => {
@@ -85,6 +108,7 @@ describe("Editor", () => {
         onToggleSidebar={() => {}}
         externalFilePath="/tmp/doc.md"
         onExternalFileConsumed={onExternalFileConsumed}
+        onOpenErrorLog={() => {}}
       />,
     );
 
@@ -130,7 +154,6 @@ describe("Editor", () => {
 
   it("prompts before discarding unsaved changes when opening", async () => {
     const user = userEvent.setup();
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(false);
     // Get into a dirty state by loading an external file, then editing it.
     tauri.setHandler("read_file", async ({ path }) => ({
       content: "# seed",
@@ -145,6 +168,7 @@ describe("Editor", () => {
         onToggleSidebar={() => {}}
         externalFilePath="/tmp/first.md"
         onExternalFileConsumed={() => {}}
+        onOpenErrorLog={() => {}}
       />,
     );
     await screen.findByText(/^first\.md$/);
@@ -164,7 +188,9 @@ describe("Editor", () => {
     });
 
     await user.click(screen.getByRole("button", { name: /open file/i }));
-    expect(confirmSpy).toHaveBeenCalled();
+    // Click Cancel on the in-app confirm dialog.
+    const cancel = await screen.findByRole("button", { name: /^cancel$/i });
+    await user.click(cancel);
     // Still showing the original file (dirty marker " •" appended).
     expect(screen.getByText(/first\.md/)).toBeInTheDocument();
     expect(screen.queryByText(/should-not-open/)).not.toBeInTheDocument();
@@ -185,6 +211,7 @@ describe("Editor", () => {
         onToggleSidebar={() => {}}
         externalFilePath="/tmp/t.md"
         onExternalFileConsumed={() => {}}
+        onOpenErrorLog={() => {}}
       />,
     );
     await screen.findByText(/^t\.md$/);
@@ -255,6 +282,7 @@ describe("Editor", () => {
         onToggleSidebar={() => {}}
         externalFilePath="/tmp/c.md"
         onExternalFileConsumed={() => {}}
+        onOpenErrorLog={() => {}}
       />,
     );
     await screen.findByText(/^c\.md$/);
@@ -268,7 +296,6 @@ describe("Editor", () => {
 
   it("offers a save-as retry when the known file path no longer exists", async () => {
     const user = userEvent.setup();
-    const confirmSpy = vi.spyOn(window, "confirm").mockReturnValue(true);
     tauri.setHandler("read_file", async ({ path }) => ({
       content: "body",
       path,
@@ -284,15 +311,16 @@ describe("Editor", () => {
         onToggleSidebar={() => {}}
         externalFilePath="/tmp/original.md"
         onExternalFileConsumed={() => {}}
+        onOpenErrorLog={() => {}}
       />,
     );
     await screen.findByText(/^original\.md$/);
 
     await user.click(screen.getByRole("button", { name: /save file/i }));
 
-    await waitFor(() => {
-      expect(confirmSpy).toHaveBeenCalled();
-    });
+    // The in-app confirm asks whether to save as a new file. Click OK.
+    const ok = await screen.findByRole("button", { name: /^ok$/i });
+    await user.click(ok);
     expect(await screen.findByText(/^recovered\.md$/)).toBeInTheDocument();
   });
 });

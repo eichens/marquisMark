@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import type { Editor } from "@tiptap/react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
+import { useErrorLog } from "../../contexts/ErrorContext";
 import {
   Menu,
   SquarePen,
@@ -67,6 +68,7 @@ function posBelow(el: HTMLElement): DropdownPos {
 }
 
 export function Toolbar({ editor, onOpen, onSave, onNewDocument, onToggleSidebar, showHamburger }: ToolbarProps) {
+  const { pushError } = useErrorLog();
   const [headingOpen, setHeadingOpen] = useState(false);
   const [headingPos, setHeadingPos] = useState<DropdownPos | null>(null);
   const [colorOpen, setColorOpen] = useState(false);
@@ -157,9 +159,9 @@ export function Toolbar({ editor, onOpen, onSave, onNewDocument, onToggleSidebar
       editor.chain().focus().setImage({ src: dataUrl }).run();
     } catch (e) {
       console.error("Insert image error:", e);
-      window.alert(`Failed to insert image: ${e}`);
+      pushError({ message: `Failed to insert image: ${e}`, source: "read_file_as_data_url" });
     }
-  }, [editor]);
+  }, [editor, pushError]);
 
   const iconSize = 16;
 

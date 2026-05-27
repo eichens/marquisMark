@@ -1,4 +1,12 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from "react";
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+  useEffect,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { FolderOpen, RefreshCw, SquarePen, File } from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
@@ -23,6 +31,10 @@ interface DirEntry {
 interface FileExplorerProps {
   onFileSelect: (path: string) => void;
   onCreateFile: (parentPath: string, name: string) => Promise<string | null>;
+}
+
+export interface FileExplorerHandle {
+  refresh: () => void;
 }
 
 interface TreeNode {
@@ -111,7 +123,8 @@ function updateNode(nodes: TreeNode[], path: string, updater: (n: TreeNode) => T
   });
 }
 
-export function FileExplorer({ onFileSelect, onCreateFile }: FileExplorerProps) {
+export const FileExplorer = forwardRef<FileExplorerHandle, FileExplorerProps>(
+  function FileExplorer({ onFileSelect, onCreateFile }, ref) {
   const [rootPath, setRootPath] = useState<string | null>(null);
   const [tree, setTree] = useState<TreeNode[]>([]);
   const [pendingName, setPendingName] = useState<string | null>(null);
@@ -216,6 +229,8 @@ export function FileExplorer({ onFileSelect, onCreateFile }: FileExplorerProps) 
       console.error("Failed to refresh directory:", e);
     }
   }, [rootPath]);
+
+  useImperativeHandle(ref, () => ({ refresh: () => { void refresh(); } }), [refresh]);
 
   const startNewDocument = useCallback(() => {
     if (!rootPath || pendingName !== null) return;
@@ -400,4 +415,4 @@ export function FileExplorer({ onFileSelect, onCreateFile }: FileExplorerProps) 
       )}
     </div>
   );
-}
+});

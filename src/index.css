@@ -1386,3 +1386,450 @@ body {
   color: var(--accent-color);
   border-color: var(--accent-color);
 }
+
+/* ============================================
+   Error system: banner stack, badge, dashboard,
+   confirm dialog, boundary fallback
+   ============================================ */
+
+.error-banner-stack {
+  position: fixed;
+  top: 3rem;
+  right: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1000;
+  pointer-events: none;
+  max-width: 28rem;
+}
+
+.error-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--bg-primary);
+  border: 1px solid #ef4444;
+  border-left-width: 3px;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  pointer-events: auto;
+  animation: error-banner-in 180ms ease-out;
+}
+
+.error-banner.level-warn {
+  border-color: #f59e0b;
+}
+
+.error-banner.level-info {
+  border-color: var(--accent-color);
+}
+
+.error-banner-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #ef4444;
+}
+
+.error-banner.level-warn .error-banner-icon {
+  color: #f59e0b;
+}
+
+.error-banner.level-info .error-banner-icon {
+  color: var(--accent-color);
+}
+
+.error-banner-message {
+  flex: 1;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.error-banner-dismiss {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-banner-dismiss:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+@keyframes error-banner-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.error-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.1rem 0.35rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-family: inherit;
+  transition: color 0.15s, background 0.15s;
+}
+
+.error-badge:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.error-badge.has-errors {
+  color: #ef4444;
+}
+
+.error-badge-count {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.error-dashboard {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-primary);
+  display: flex;
+  flex-direction: column;
+  z-index: 50;
+}
+
+.error-dashboard-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  flex-shrink: 0;
+}
+
+.error-dashboard-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.error-dashboard-count {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.error-dashboard-spacer {
+  flex: 1;
+}
+
+.error-dashboard-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: inherit;
+}
+
+.error-dashboard-action:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.error-dashboard-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.3rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.error-dashboard-close:hover {
+  color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.error-dashboard-body {
+  flex: 1;
+  overflow: auto;
+  padding: 0.5rem 0;
+}
+
+.error-dashboard-empty {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 3rem 1rem;
+  font-size: 0.85rem;
+}
+
+.error-dashboard-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.error-dashboard-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border-color);
+  padding: 0.6rem 1rem;
+  font-family: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  color: var(--text-primary);
+}
+
+.error-dashboard-row:hover {
+  background: var(--bg-tertiary);
+}
+
+.error-dashboard-level {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  flex-shrink: 0;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.error-dashboard-level.level-warn {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.error-dashboard-level.level-info {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-color);
+}
+
+.error-dashboard-time {
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.error-dashboard-message {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.error-dashboard-chevron {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.error-detail {
+  padding: 1rem 1.25rem;
+}
+
+.error-detail-back {
+  background: none;
+  border: none;
+  color: var(--accent-color);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.error-detail-back:hover {
+  text-decoration: underline;
+}
+
+.error-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.error-detail-level {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.error-detail-level.level-warn {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.error-detail-level.level-info {
+  background: rgba(99, 102, 241, 0.15);
+  color: var(--accent-color);
+}
+
+.error-detail-time {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+.error-detail-message {
+  margin: 0 0 1.25rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.error-detail-section {
+  margin-bottom: 1rem;
+}
+
+.error-detail-section h4 {
+  margin: 0 0 0.35rem 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.error-detail-section pre {
+  margin: 0;
+  padding: 0.6rem 0.75rem;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 18rem;
+  overflow: auto;
+}
+
+.confirm-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  outline: none;
+}
+
+.confirm-dialog {
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.25rem;
+  min-width: 22rem;
+  max-width: 32rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+}
+
+.confirm-dialog-message {
+  margin: 0 0 1.25rem 0;
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.confirm-dialog-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.confirm-dialog-cancel,
+.confirm-dialog-ok {
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.confirm-dialog-cancel {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.confirm-dialog-cancel:hover {
+  background: var(--bg-secondary);
+}
+
+.confirm-dialog-ok {
+  background: var(--accent-color);
+  color: white;
+  border: 1px solid var(--accent-color);
+}
+
+.confirm-dialog-ok:hover {
+  filter: brightness(1.05);
+}
+
+.error-boundary-fallback {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-secondary);
+}
+
+.error-boundary-fallback h3 {
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.error-boundary-fallback button {
+  margin-top: 1rem;
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.error-boundary-fallback button:hover {
+  background: var(--accent-color);
+  color: white;
+  border-color: var(--accent-color);
+}

@@ -16,6 +16,13 @@ type Handler = (args: Record<string, unknown>) => unknown | Promise<unknown>;
 const handlers = new Map<string, Handler>();
 const callLog: { cmd: string; args: Record<string, unknown> }[] = [];
 
+function seedDefaults() {
+  handlers.set("log_event", async () => {});
+  handlers.set("read_log", async () => []);
+  handlers.set("clear_log", async () => {});
+}
+seedDefaults();
+
 export const tauri = {
   setHandler(cmd: string, handler: Handler) {
     handlers.set(cmd, handler);
@@ -37,6 +44,9 @@ export const tauri = {
     dialogSaveCalls.length = 0;
     storeBackend.clear();
     storeHistory.length = 0;
+    // Logging commands are noisy infrastructure — register no-op defaults so
+    // tests don't have to set them up unless they care.
+    seedDefaults();
   },
 };
 

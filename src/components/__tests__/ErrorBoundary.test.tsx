@@ -2,15 +2,32 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ErrorBoundary } from "../ErrorBoundary";
+import { ErrorProvider, useErrorLog } from "../../contexts/ErrorContext";
+import { GlobalErrorListeners } from "../errors/GlobalErrorListeners";
 
 function Thrower({ shouldThrow }: { shouldThrow: boolean }) {
   if (shouldThrow) throw new Error("boom");
   return <div>happy path</div>;
 }
 
+function ErrorCount() {
+  const { errors } = useErrorLog();
+  return <div data-testid="count">{errors.length}</div>;
+}
+
+function ErrorMessages() {
+  const { errors } = useErrorLog();
+  return (
+    <ul data-testid="messages">
+      {errors.map((e) => (
+        <li key={e.id}>{e.message}</li>
+      ))}
+    </ul>
+  );
+}
+
 describe("ErrorBoundary", () => {
   beforeEach(() => {
-    // React logs caught errors to console.error; silence for a clean test output.
     vi.spyOn(console, "error").mockImplementation(() => {});
   });
 
@@ -20,53 +37,58 @@ describe("ErrorBoundary", () => {
 
   it("renders children when no error", () => {
     render(
-      <ErrorBoundary>
-        <Thrower shouldThrow={false} />
-      </ErrorBoundary>,
+      <ErrorProvider>
+        <ErrorBoundary>
+          <Thrower shouldThrow={false} />
+        </ErrorBoundary>
+      </ErrorProvider>,
     );
     expect(screen.getByText("happy path")).toBeInTheDocument();
   });
 
-  it("catches render errors and shows the error message", () => {
+  it("catches render errors, shows fallback, and logs the error", async () => {
     render(
-      <ErrorBoundary>
-        <Thrower shouldThrow={true} />
-      </ErrorBoundary>,
+      <ErrorProvider>
+        <ErrorBoundary>
+          <Thrower shouldThrow={true} />
+        </ErrorBoundary>
+        <ErrorMessages />
+      </ErrorProvider>,
     );
-    expect(screen.getByText("Something went wrong")).toBeInTheDocument();
-    expect(screen.getByText("boom")).toBeInTheDocument();
+    expect(screen.getByText(/this view crashed/i)).toBeInTheDocument();
+    expect(await screen.findByText("boom")).toBeInTheDocument();
   });
 
   it("resets back to children when Try again is clicked", async () => {
     const user = userEvent.setup();
-
-    // Flip-able component so we can toggle shouldThrow after render.
     function Flipper() {
       return <Thrower shouldThrow={false} />;
     }
-
     const { rerender } = render(
-      <ErrorBoundary>
-        <Thrower shouldThrow={true} />
-      </ErrorBoundary>,
+      <ErrorProvider>
+        <ErrorBoundary>
+          <Thrower shouldThrow={true} />
+        </ErrorBoundary>
+      </ErrorProvider>,
     );
-
-    expect(screen.getByText("Something went wrong")).toBeInTheDocument();
-    // Swap the tree to a version that does not throw before resetting.
+    expect(screen.getByText(/this view crashed/i)).toBeInTheDocument();
     rerender(
-      <ErrorBoundary>
-        <Flipper />
-      </ErrorBoundary>,
+      <ErrorProvider>
+        <ErrorBoundary>
+          <Flipper />
+        </ErrorBoundary>
+      </ErrorProvider>,
     );
     await user.click(screen.getByRole("button", { name: /try again/i }));
     expect(screen.getByText("happy path")).toBeInTheDocument();
   });
 
-  it("catches window error events", () => {
+  it("GlobalErrorListeners catches window error events into the log", async () => {
     render(
-      <ErrorBoundary>
-        <div>child</div>
-      </ErrorBoundary>,
+      <ErrorProvider>
+        <GlobalErrorListeners />
+        <ErrorCount />
+      </ErrorProvider>,
     );
     act(() => {
       window.dispatchEvent(
@@ -76,22 +98,21 @@ describe("ErrorBoundary", () => {
         }),
       );
     });
-    expect(screen.getByText("Something went wrong")).toBeInTheDocument();
-    expect(screen.getByText("async-boom")).toBeInTheDocument();
+    expect(await screen.findByText("1")).toBeInTheDocument();
   });
 
-  it("catches unhandled promise rejections", () => {
+  it("GlobalErrorListeners catches unhandled promise rejections into the log", async () => {
     render(
-      <ErrorBoundary>
-        <div>child</div>
-      </ErrorBoundary>,
+      <ErrorProvider>
+        <GlobalErrorListeners />
+        <ErrorCount />
+      </ErrorProvider>,
     );
     act(() => {
       const evt = new Event("unhandledrejection") as PromiseRejectionEvent;
       Object.defineProperty(evt, "reason", { value: new Error("rejected") });
       window.dispatchEvent(evt);
     });
-    expect(screen.getByText("Something went wrong")).toBeInTheDocument();
-    expect(screen.getByText("rejected")).toBeInTheDocument();
+    expect(await screen.findByText("1")).toBeInTheDocument();
   });
 });

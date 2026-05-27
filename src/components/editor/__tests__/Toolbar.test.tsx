@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { Toolbar } from "../Toolbar";
 import { createMockEditor } from "../../../test/mockEditor";
 import { tauri, dialog } from "../../../test/tauri";
+import { ErrorProvider } from "../../../contexts/ErrorContext";
 
 function renderToolbar(
   overrides: Partial<Parameters<typeof Toolbar>[0]> = {},
@@ -19,7 +20,11 @@ function renderToolbar(
     showHamburger: true,
     ...overrides,
   };
-  const utils = render(<Toolbar {...props} />);
+  const utils = render(
+    <ErrorProvider>
+      <Toolbar {...props} />
+    </ErrorProvider>,
+  );
   return { ...utils, ...props, editor };
 }
 
