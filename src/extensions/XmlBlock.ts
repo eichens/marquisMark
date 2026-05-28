@@ -57,8 +57,15 @@ export const XmlBlock = Node.create({
         if (!editor.isActive("xmlBlock")) return false;
         editor.commands.command(({ tr, state }) => {
           const { $from } = state.selection;
-          tr.insertText("\n", $from.pos);
-          tr.setSelection(TextSelection.create(tr.doc, $from.pos + 1));
+          // Carry leading whitespace from the current line. If the line has
+          // none (e.g. user backspaced the indent away), the new line stays
+          // unindented — auto-indent doesn't fight a deliberate dedent.
+          const before = $from.parent.textBetween(0, $from.parentOffset);
+          const lineStart = before.lastIndexOf("\n") + 1;
+          const indent = before.slice(lineStart).match(/^[ \t]*/)?.[0] ?? "";
+          const insertText = "\n" + indent;
+          tr.insertText(insertText, $from.pos);
+          tr.setSelection(TextSelection.create(tr.doc, $from.pos + insertText.length));
           return true;
         });
         return true;

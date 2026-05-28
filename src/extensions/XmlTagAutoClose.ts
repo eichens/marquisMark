@@ -6,8 +6,6 @@ const PLUGIN_KEY = new PluginKey("xmlTagAutoClose");
 
 const OPENING_TAG_PATTERN = /<([\w][\w:-]*)[^>]*$/;
 
-const LINE_START_TAG_PATTERN = /^(\s*)<([\w][\w:-]*)[^>]*$/;
-
 function getLeadingWhitespace(text: string): string {
   return text.match(/^(\s*)/)?.[1] || "";
 }
@@ -58,42 +56,66 @@ function handleAutoClose(
   if (!tagMatch) return false;
 
   const tagName = tagMatch[1];
-  const lineStartMatch = textBefore.match(LINE_START_TAG_PATTERN);
-  const { tr, schema } = state;
-  const paragraphType = schema.nodes.paragraph;
+  const { tr } = state;
+  const closingTag = `</${tagName}>`;
 
-  // Line-start branch: the tag owns its line, so treat `>` as block-open.
-  // Emit three paragraphs (opening line, indented empty content line, closing
-  // line) and place the cursor inside the content paragraph. Inline branch
-  // (below) just inserts `></tag>` on the same line.
-  if (lineStartMatch) {
-    const currentIndent = lineStartMatch[1];
-    const contentIndent = currentIndent + "  ";
+  tr.insertText(">" + closingTag, from, to);
+  tr.setSelection(TextSelection.create(tr.doc, from + 1));
 
-    tr.insertText(">", from, to);
+  view.dispatch(tr);
+  return true;
+}
 
-    const afterParagraph = tr.mapping.map($from.after());
+const INDENT = "  ";
 
-    const contentPara = paragraphType.create(
-      null,
-      contentIndent ? [schema.text(contentIndent)] : undefined,
-    );
-    const closingPara = paragraphType.create(null, [
-      schema.text(`${currentIndent}</${tagName}>`),
-    ]);
+function handleTab(view: EditorView): boolean {
+  const { state } = view;
+  const { $from } = state.selection;
+  const parent = $from.parent;
 
-    tr.insert(afterParagraph, [contentPara, closingPara]);
-
-    const cursorPos = afterParagraph + 1 + contentIndent.length;
-    tr.setSelection(TextSelection.create(tr.doc, cursorPos));
-  } else {
-    const closingTag = `</${tagName}>`;
-    tr.insertText(">" + closingTag, from, to);
-
-    const cursorPos = from + 1;
-    tr.setSelection(TextSelection.create(tr.doc, cursorPos));
+  // Defer to TipTap's list-sink behavior when inside a list. Returning false
+  // lets the chained keymap handler run.
+  if (
+    parent.type.name === "listItem" ||
+    parent.type.name === "taskItem" ||
+    parent.type.name === "bulletList" ||
+    parent.type.name === "orderedList" ||
+    parent.type.name === "taskList"
+  ) {
+    return false;
   }
 
+  const { tr } = state;
+  tr.insertText(INDENT, state.selection.from, state.selection.to);
+  view.dispatch(tr);
+  return true;
+}
+
+function handleShiftTab(view: EditorView): boolean {
+  const { state } = view;
+  const { $from } = state.selection;
+  const parent = $from.parent;
+
+  if (
+    parent.type.name === "listItem" ||
+    parent.type.name === "taskItem" ||
+    parent.type.name === "bulletList" ||
+    parent.type.name === "orderedList" ||
+    parent.type.name === "taskList"
+  ) {
+    return false;
+  }
+
+  // Remove up to 2 leading whitespace characters from the start of the line
+  // (the current paragraph or xmlBlock line). If there isn't any, swallow the
+  // event so focus doesn't escape the editor.
+  const lineStart = $from.start();
+  const before = parent.textBetween(0, $from.parentOffset);
+  const leading = before.match(/^( {1,2})/)?.[1];
+  if (!leading) return true;
+
+  const { tr } = state;
+  tr.delete(lineStart, lineStart + leading.length);
   view.dispatch(tr);
   return true;
 }
@@ -165,6 +187,12 @@ export const XmlTagAutoClose = Extension.create({
           handleKeyDown(view, event) {
             if (event.key === "Enter" && !event.shiftKey) {
               return handleEnterIndent(view);
+            }
+            if (event.key === "Tab" && !event.shiftKey) {
+              return handleTab(view);
+            }
+            if (event.key === "Tab" && event.shiftKey) {
+              return handleShiftTab(view);
             }
             return false;
           },
