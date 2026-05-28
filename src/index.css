@@ -355,7 +355,7 @@ body {
   box-shadow: var(--editor-shadow, 0 1px 3px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(0, 0, 0, 0.04));
   outline: none;
   font-size: 1rem;
-  line-height: 1.75;
+  line-height: 1.55;
   color: var(--text-primary);
 }
 
@@ -505,7 +505,16 @@ body {
 
 /* Paragraphs */
 .tiptap p {
-  margin-bottom: 0.75rem;
+  margin: 0 0 0.35rem;
+}
+
+/* Tighten the gap when blocks butt up against each other (most visible
+   between consecutive paragraphs and around XML blocks). */
+.tiptap p + p,
+.tiptap p + pre[data-xml-block="true"],
+.tiptap pre[data-xml-block="true"] + p,
+.tiptap pre[data-xml-block="true"] + pre[data-xml-block="true"] {
+  margin-top: 0;
 }
 
 /* Bold */
@@ -794,9 +803,10 @@ body {
   border: none;
   border-radius: 0;
   padding: 0;
-  margin: 0;
+  margin: 0.35rem 0;
   white-space: pre-wrap;
   word-wrap: break-word;
+  line-height: 1.4;
 }
 
 .tiptap pre[data-xml-block="true"] code {
