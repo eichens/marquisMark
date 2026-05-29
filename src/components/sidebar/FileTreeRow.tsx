@@ -1,4 +1,5 @@
-import { ChevronRight, ChevronDown, Folder, File } from "lucide-react";
+import { ChevronRight, ChevronDown, Folder } from "lucide-react";
+import { FileIcon } from "./FileIcon";
 
 export interface VisibleRow {
   name: string;
@@ -40,7 +41,11 @@ export function FileTreeRow({ row, onActivate }: FileTreeRowProps) {
       ) : (
         <span className="tree-chevron-spacer" />
       )}
-      {row.isDir ? <Folder size={iconSize} /> : <File size={iconSize} />}
+      {row.isDir ? (
+        <Folder size={iconSize} />
+      ) : (
+        <FileIcon name={row.name} size={iconSize} />
+      )}
       <span className="tree-node-name">{row.name}</span>
     </div>
   );

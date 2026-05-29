@@ -7,7 +7,8 @@ import {
   forwardRef,
   useImperativeHandle,
 } from "react";
-import { FolderOpen, RefreshCw, SquarePen, File } from "lucide-react";
+import { FolderOpen, RefreshCw, SquarePen } from "lucide-react";
+import { FileIcon } from "./FileIcon";
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { LazyStore } from "@tauri-apps/plugin-store";
@@ -378,7 +379,7 @@ export const FileExplorer = forwardRef<FileExplorerHandle, FileExplorerProps>(
                         style={{ paddingLeft: `${row.depth + 0.5}rem` }}
                       >
                         <span className="tree-chevron-spacer" />
-                        <File size={14} />
+                        <FileIcon name={pendingName || "new-document.md"} size={14} />
                         <input
                           ref={pendingInputRef}
                           className="tree-pending-input"
