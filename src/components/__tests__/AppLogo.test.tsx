@@ -10,19 +10,18 @@ describe("AppLogo", () => {
     expect(svg).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("uses default size 18 and scales width proportionally", () => {
+  it("uses default size 18 with square dimensions", () => {
     const { container } = render(<AppLogo />);
     const svg = container.querySelector("svg")!;
     expect(svg.getAttribute("height")).toBe("18");
-    // width = (64/57) * 18
-    expect(svg.getAttribute("width")).toBe(String((64 / 57) * 18));
+    expect(svg.getAttribute("width")).toBe("18");
   });
 
   it("respects size prop", () => {
     const { container } = render(<AppLogo size={36} />);
     const svg = container.querySelector("svg")!;
     expect(svg.getAttribute("height")).toBe("36");
-    expect(svg.getAttribute("width")).toBe(String((64 / 57) * 36));
+    expect(svg.getAttribute("width")).toBe("36");
   });
 
   it("applies the className prop", () => {

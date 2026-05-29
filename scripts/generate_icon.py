@@ -18,7 +18,11 @@ from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parent.parent
 ICON_DIR = ROOT / "src-tauri" / "icons"
-SOURCE_GLYPH = ICON_DIR / "icon.png"
+# Source glyph: prefer the redesigned logo at the repo root, fall back to the
+# previous icon.png. The script extracts dark pixels and recolors them white,
+# so it works with any flat black-on-light source.
+_REDESIGNED = ROOT / "RedesignedLogo.png"
+SOURCE_GLYPH = _REDESIGNED if _REDESIGNED.exists() else ICON_DIR / "icon.png"
 OUT = ICON_DIR / "icon-source.png"
 
 CANVAS = 1024
